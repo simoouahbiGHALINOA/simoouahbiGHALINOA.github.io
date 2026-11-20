@@ -1,0 +1,78 @@
+{
+  "method": "first-party source file bytes",
+  "totalSourceBytes": 105629,
+  "languages": [
+    {
+      "name": "Rust",
+      "extension": ".rs",
+      "starterDirectory": "starters/rust",
+      "fileCount": 1,
+      "sourceBytes": 3042,
+      "actualPercent": 2.9,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "Go",
+      "extension": ".go",
+      "starterDirectory": "starters/go",
+      "fileCount": 2,
+      "sourceBytes": 2599,
+      "actualPercent": 2.5,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "Python",
+      "extension": ".py",
+      "starterDirectory": "starters/python",
+      "fileCount": 4,
+      "sourceBytes": 6244,
+      "actualPercent": 5.9,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "TypeScript",
+      "extension": ".ts, .tsx",
+      "starterDirectory": "starters/typescript",
+      "fileCount": 14,
+      "sourceBytes": 59514,
+      "actualPercent": 56.3,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "JavaScript",
+      "extension": ".js, .mjs, .cjs",
+      "starterDirectory": "starters/javascript",
+      "fileCount": 4,
+      "sourceBytes": 2724,
+      "actualPercent": 2.6,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "SQL",
+      "extension": ".sql",
+      "starterDirectory": "starters/sql",
+      "fileCount": 4,
+      "sourceBytes": 2271,
+      "actualPercent": 2.1,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "CSS",
+      "extension": ".css",
+      "starterDirectory": "starters/css",
+      "fileCount": 2,
+      "sourceBytes": 27114,
+      "actualPercent": 25.7,
+      "equalPercent": 12.5
+    },
+    {
+      "name": "HTML",
+      "extension": ".html, .htm",
+      "starterDirectory": "starters/html",
+      "fileCount": 2,
+      "sourceBytes": 2121,
+      "actualPercent": 2,
+      "equalPercent": 12.5
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[package]
+name = "eco-rust-starter"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[[bin]]
+name = "eco-rust-starter"
+path = "src/main.rs"

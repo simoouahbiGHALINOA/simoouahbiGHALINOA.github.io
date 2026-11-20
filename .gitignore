@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.local
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+public/assets/Enregistrement 2026-11-06 214350.mp4
+**/target/
+**/__pycache__/
+*.py[cod]
+starters/sql/eco.db

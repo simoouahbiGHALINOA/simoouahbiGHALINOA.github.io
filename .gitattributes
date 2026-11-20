@@ -1,0 +1,9 @@
+# Include each first-party starter language in GitHub's language statistics.
+starters/**/*.rs linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.go linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.py linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.ts linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.js linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.sql linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.css linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored
+starters/**/*.html linguist-detectable -linguist-documentation -linguist-generated -linguist-vendored

@@ -1,0 +1,81 @@
+name: Validate language starters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'starters/**'
+      - 'supabase/**'
+      - 'src/**'
+      - 'scripts/generate-language-metrics.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/starter-kits.yml'
+  pull_request:
+    paths:
+      - 'starters/**'
+      - 'supabase/**'
+      - 'src/**'
+      - 'scripts/generate-language-metrics.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/starter-kits.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Generate and check language shares
+        run: |
+          npm run generate:language-metrics
+          node -e "const metrics = require('./public/language-metrics.json'); const sum = (key) => metrics.languages.reduce((total, item) => total + item[key], 0); if (metrics.languages.length !== 8 || Math.round(sum('equalPercent') * 10) !== 1000 || Math.round(sum('actualPercent') * 10) !== 1000) throw new Error('Language shares must cover eight languages and total 100%.');"
+      - name: Test Rust starter
+        run: cargo test --manifest-path starters/rust/Cargo.toml
+      - name: Test Go starter
+        working-directory: starters/go
+        run: go test ./...
+      - name: Test Python starter and SQL example
+        run: |
+          python -m unittest discover -s starters/python -p "test_*.py"
+          python -m unittest discover -s starters/sql -p "test_*.py"
+          python starters/sql/run.py
+          python starters/sql/run.py
+          python starters/sql/run.py add "Continuous integration task"
+          python starters/sql/run.py complete 3
+          python starters/sql/run.py list | grep -q "\[x\] 3. Continuous integration task"
+      - name: Test JavaScript starter
+        working-directory: starters/javascript
+        run: |
+          npm test
+          npm start
+      - name: Test TypeScript starter
+        run: |
+          npm ci --prefix starters/typescript
+          npm test --prefix starters/typescript
+          npm start --prefix starters/typescript
+      - name: Check static starters
+        run: |
+          test -s starters/css/index.html
+          test -s starters/css/style.css
+          test -s starters/html/index.html
+          grep -q 'stylesheet' starters/css/index.html
