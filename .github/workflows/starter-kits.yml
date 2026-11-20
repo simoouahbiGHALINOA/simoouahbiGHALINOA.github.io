@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'starters/**'
-      - 'supabase/**'
+      - 'api/**'
       - 'src/**'
       - 'scripts/generate-language-metrics.mjs'
       - 'package.json'
@@ -14,7 +14,7 @@ on:
   pull_request:
     paths:
       - 'starters/**'
-      - 'supabase/**'
+      - 'api/**'
       - 'src/**'
       - 'scripts/generate-language-metrics.mjs'
       - 'package.json'

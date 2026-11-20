@@ -15,9 +15,9 @@ import {
   PanelLeftOpen,
   PanelRightClose,
   PanelRightOpen,
-  Settings,
   ShieldCheck,
   Sun,
+  UserPlus,
   X,
 } from 'lucide-react';
 import MusicPlayer from './components/MusicPlayer';
@@ -29,6 +29,8 @@ import TimelinePage from './TimelinePage';
 const ThreeBackground = lazy(() => import('./components/ThreeBackground'));
 
 const PROFILE_URL = 'https://github.com/simoouahbiGHALINOA';
+const REPOSITORIES_URL = 'https://github.com/simoouahbiGHALINOA?tab=repositories';
+const GITHUB_SIGNUP_URL = 'https://github.com/signup?source=eco-domain&referrer=simoouahbiGHALINOA';
 const SOURCE_URL = 'https://github.com/simoouahbiGHALINOA/HYPERSCALE-ecosystem';
 
 function readLayoutPreference(key: string, fallback: boolean) {
@@ -67,9 +69,9 @@ function EcoHeader({
         </nav>
       </div>
       <div className="header-side header-side-right">
-        <a className="header-link github-link" href={PROFILE_URL} target="_blank" rel="noreferrer" aria-label="Visit and follow on GitHub"><Github size={16} /><span>GitHub</span></a>
+        <a className="header-link github-link" href={REPOSITORIES_URL} target="_blank" rel="noreferrer" aria-label="View all repositories on GitHub"><Github size={16} /><span>Repositories</span></a>
         <a className="icon-button toggle-button" href={SOURCE_URL} target="_blank" rel="noreferrer" aria-label="Open the original ECO ecosystem repository" title="Original ECO ecosystem"><ArrowUpRight size={18} /></a>
-        <button className="icon-button toggle-button" type="button" onClick={onToggleRight} aria-label="Toggle settings" aria-expanded={rightOpen} title="Toggle settings (Ctrl+M)"><Settings size={19} /></button>
+        <a className="icon-button toggle-button" href={GITHUB_SIGNUP_URL} target="_blank" rel="noreferrer" aria-label="Register on GitHub" title="Register on GitHub"><UserPlus size={19} /></a>
         <button className="icon-button toggle-button right-toggle" type="button" onClick={onToggleRight} aria-label="Toggle right sidebar" aria-expanded={rightOpen} title="Toggle right sidebar (Ctrl+M)">
           {rightOpen ? <PanelRightClose size={19} /> : <PanelRightOpen size={19} />}
         </button>
@@ -191,7 +193,7 @@ function HomePage() {
 
       <section className="content-section source-section">
         <div><span className="eyebrow">KEEP IN TOUCH</span><h2>Follow the work.</h2><p>Visit the GitHub profile to follow new work, open a discussion, or get in touch.</p></div>
-        <a className="secondary-button" href={PROFILE_URL} target="_blank" rel="noreferrer"><Github size={17} /> Visit GitHub <ArrowUpRight size={15} /></a>
+        <a className="secondary-button" href={REPOSITORIES_URL} target="_blank" rel="noreferrer"><Github size={17} /> View repositories <ArrowUpRight size={15} /></a>
       </section>
     </main>
   );
@@ -235,7 +237,7 @@ function EcoFooter() {
     <footer className="eco-footer">
       <span className="footer-license">Built with @eco · © {now.getFullYear()} simoouahbiGHALINOA</span>
       <MusicPlayer />
-      <a className="footer-github-link" href={PROFILE_URL} target="_blank" rel="noreferrer" aria-label="Visit GitHub profile">
+      <a className="footer-github-link" href={REPOSITORIES_URL} target="_blank" rel="noreferrer" aria-label="View all GitHub repositories">
         <Github size={19} />
       </a>
       <div className="footer-meta">

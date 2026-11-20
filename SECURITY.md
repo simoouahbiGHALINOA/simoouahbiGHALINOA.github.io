@@ -2,8 +2,10 @@
 
 ## Scope
 
-This repository builds a static GitHub Pages site. It has no application server,
-account system, sign-in flow, or private cloud storage.
+This repository builds a static GitHub Pages site and a separately hosted,
+small API for the anonymous profile-link click counter. It has no account
+system, sign-in flow, or private cloud storage. The API stores only an aggregate
+counter using the configured Prisma database provider.
 
 The music player stores visitor-added files in the browser's IndexedDB and saved
 audio URLs and playback position in that browser's local storage. This data is

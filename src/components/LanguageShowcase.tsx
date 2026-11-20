@@ -92,7 +92,7 @@ export default function LanguageShowcase() {
         <>
           <p className="language-note">
             Equal share is a presentation choice. Measured share uses source-file bytes under <code>src/</code>, <code>starters/</code>,
-            and <code>supabase/</code>; images, dependencies, and build output are excluded.
+            and <code>api/</code>; images, dependencies, and build output are excluded.
           </p>
           <div className="language-grid">
             {metrics.languages.map((language) => (

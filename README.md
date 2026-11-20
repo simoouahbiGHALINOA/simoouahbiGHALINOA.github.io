@@ -43,13 +43,18 @@ This is a root-level GitHub Pages site for `simoouahbiGHALINOA.github.io`.
 
 Static files are stored in `public/` and are served from the site root. For example, `public/assets/readme-3d-banner.png` is available at `/assets/readme-3d-banner.png`. GitHub profile links open the profile; visitors must click **Follow** on GitHub themselves while signed in. The dedicated Follow buttons also update an aggregate click counter; it does not detect or claim that a visitor followed.
 
-## Database setup
+## API and database
 
-The site uses Supabase to store only the aggregate number of clicks on its Follow buttons. No GitHub account or visitor identity is sent by the site. The profile still opens if the counter is unavailable.
+The GitHub Pages site remains the public frontend at `https://simoouahbighalinoa.github.io`. GitHub Pages only serves static files, so the Prisma API in [`api/`](./api/) must run on a server host (for example Railway); the browser talks to that API and never receives database credentials. The API supports PostgreSQL and MongoDB through separate Prisma schemas. MongoDB is the initial provider in `api/.env.example`; set `DATABASE_PROVIDER=postgresql` to choose PostgreSQL instead. One provider is active per API deployment; the two databases are alternatives, not dual-written replicas.
 
-1. Create a Supabase project and run [`supabase/migrations/20261120000000_profile_click_counter.sql`](./supabase/migrations/20261120000000_profile_click_counter.sql) in its SQL Editor.
-2. In the repository's **Settings → Secrets and variables → Actions**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. Use the project URL and its public anon/publishable key only; never use a `service_role` or secret key in this frontend.
-3. For local development, copy [`.env.example`](./.env.example) to `.env.local` and fill in the same two public values. `.env.local` is ignored by Git.
+For local development:
+
+1. Copy [`api/.env.example`](./api/.env.example) to `api/.env`, set `DATABASE_URL`, and choose `DATABASE_PROVIDER`.
+2. From `api/`, run `npm ci`, then `npm run db:push:postgres` or `npm run db:push:mongodb` to create the counter model in the selected database.
+3. Run `npm run dev` in `api/`, then copy [`.env.example`](./.env.example) to `.env.local` and set `VITE_API_BASE_URL=http://localhost:8787`.
+4. In the GitHub repository's **Settings → Secrets and variables → Actions → Variables**, set `VITE_API_BASE_URL` to the deployed API's public URL. The Pages workflow injects this public endpoint when it builds the frontend; database credentials belong only in the API host's environment.
+
+For PostgreSQL production deployments, apply the checked-in Prisma migration with `npm run db:migrate:postgres`. For MongoDB, run `npm run db:push:mongodb` against the configured database. See [`api/README.md`](./api/README.md) for deployment details.
 
 The SQL starter separately saves its runnable example to a local SQLite database at `starters/sql/eco.db`.
 
@@ -138,19 +143,19 @@ flowchart LR
 
 ## 🗣️ Languages
 
-The starter kit keeps one runnable example per language in a separate folder. Each receives an equal **12.5% starter share**; this is a visual comparison, not a claim that the repository contains equal amounts of each language. The site also calculates real source-file shares by bytes and file counts from `src/`, `starters/`, and `supabase/`, excluding assets, dependencies, and build output. The starter source is explicitly included in GitHub Linguist statistics; GitHub may take time to refresh the repository language bar after a push.
+The starter kit keeps one runnable example per language in a separate folder. Each receives an equal **12.5% starter share**; this is a visual comparison, not a claim that the repository contains equal amounts of each language. The site also calculates real source-file shares by bytes and file counts from `src/`, `starters/`, and `api/`, excluding assets, dependencies, and build output. The starter source is explicitly included in GitHub Linguist statistics; GitHub may take time to refresh the repository language bar after a push.
 
 <!-- language-metrics:start -->
 | Language | Equal starter share | Measured source share | Files | File types | Starter |
 |----------|---------------------|-----------------------|-------|------------|---------|
-| 🦀 Rust | 12.5% | 2.9% | 1 | `.rs` | [Open](./starters/rust/README.md) |
-| 🐹 Go | 12.5% | 2.5% | 2 | `.go` | [Open](./starters/go/README.md) |
-| 🐍 Python | 12.5% | 5.9% | 4 | `.py` | [Open](./starters/python/README.md) |
-| 🔷 TypeScript | 12.5% | 56.3% | 14 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
-| ⚡ JavaScript | 12.5% | 2.6% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
-| 🗃️ SQL | 12.5% | 2.1% | 4 | `.sql` | [Open](./starters/sql/README.md) |
-| 🎨 CSS | 12.5% | 25.7% | 2 | `.css` | [Open](./starters/css/README.md) |
-| 🌐 HTML | 12.5% | 2.0% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
+| 🦀 Rust | 12.5% | 2.7% | 1 | `.rs` | [Open](./starters/rust/README.md) |
+| 🐹 Go | 12.5% | 2.3% | 2 | `.go` | [Open](./starters/go/README.md) |
+| 🐍 Python | 12.5% | 5.6% | 4 | `.py` | [Open](./starters/python/README.md) |
+| 🔷 TypeScript | 12.5% | 59.6% | 16 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
+| ⚡ JavaScript | 12.5% | 2.5% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
+| 🗃️ SQL | 12.5% | 0.8% | 4 | `.sql` | [Open](./starters/sql/README.md) |
+| 🎨 CSS | 12.5% | 24.6% | 2 | `.css` | [Open](./starters/css/README.md) |
+| 🌐 HTML | 12.5% | 1.9% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
 <!-- language-metrics:end -->
 
 Language metrics are generated with `npm run generate:language-metrics` before development and production builds. See the live cards on the [home page](https://simoouahbiGHALINOA.github.io/#languages). All first-party starter code uses the repository's MIT license; the SPDX headers and root [LICENSE](./LICENSE) are the source of truth.

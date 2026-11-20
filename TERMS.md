@@ -2,7 +2,7 @@
 
 **Effective date: November 20, 2026**
 
-This site is a personal, static project maintained by
+This site is a personal project maintained by
 [simoouahbiGHALINOA](https://github.com/simoouahbiGHALINOA). By using it, you
 agree to these terms.
 
@@ -30,19 +30,18 @@ so after a reload the visitor may need to press Play to resume.
 ## GitHub profile click counter
 
 The Follow buttons open the maintainer's GitHub profile. Visitors must choose
-to follow on GitHub themselves; this site cannot follow on their behalf. When
-the counter is configured, button clicks update one aggregate total in the
-project's Supabase database. The site does not submit GitHub usernames or
-account identifiers, and the total is a count of link clicks, not confirmed
-followers. Supabase may process technical request metadata under its own
-policies.
+to follow on GitHub themselves; this site cannot follow on their behalf. When the counter is configured, button clicks update one aggregate total through
+the project's API and selected Prisma database. The site does not submit GitHub
+usernames or account identifiers, and the total is a count of link clicks, not
+confirmed followers. The API host and database provider may process technical
+request metadata under their own policies.
 
 ## Availability and responsibility
 
 The site and its content are provided “as is,” without warranties to the extent
 permitted by law. The maintainer is not responsible for third-party audio
-availability, external websites, Supabase availability, or data removed by
-browser storage settings.
+availability, external websites, API or database provider availability, or data
+removed by browser storage settings.
 Nothing in these terms limits rights that cannot be limited under applicable
 law.
 

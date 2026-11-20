@@ -13,4 +13,4 @@ Each language has an independent task-list example in its own directory. The run
 | CSS | `.css` | Open `starters/css/index.html` in a browser |
 | HTML | `.html` | Open `starters/html/index.html` in a browser |
 
-The website shows both equal starter-kit shares and source-byte-weighted percentages. Equal shares are a display choice; GitHub's repository language bar measures the actual source-code bytes, including the much larger website app. The website's measured shares are generated from first-party code under `src/`, `starters/`, and `supabase/`.
+The website shows both equal starter-kit shares and source-byte-weighted percentages. Equal shares are a display choice; GitHub's repository language bar measures the actual source-code bytes, including the website app and API. The website's measured shares are generated from first-party code under `src/`, `starters/`, and `api/`.

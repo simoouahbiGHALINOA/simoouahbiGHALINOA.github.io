@@ -46,9 +46,9 @@ export default function GitHubFollowButton() {
   };
 
   const status = !trackingConfigured
-    ? 'Click counter is not configured yet; the GitHub profile link still works.'
+    ? 'Profile-link click counter is not configured; the GitHub profile still works.'
     : trackingError
-      ? 'Click counter is temporarily unavailable; the GitHub profile link still works.'
+      ? 'Profile-link click counter is temporarily unavailable; the GitHub profile still works.'
       : clickCount === null
         ? 'Loading anonymous profile-link clicks…'
         : `${clickCount.toLocaleString()} profile-link clicks; this is not a follower count.`;
@@ -61,6 +61,7 @@ export default function GitHubFollowButton() {
         target="_blank"
         rel="noreferrer"
         onClick={handleClick}
+        aria-label="Visit simoouahbiGHALINOA on GitHub"
       >
         <Github size={16} /> Follow on GitHub <ArrowUpRight size={15} />
       </a>

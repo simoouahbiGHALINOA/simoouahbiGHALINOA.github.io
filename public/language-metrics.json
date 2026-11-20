@@ -1,6 +1,6 @@
 {
   "method": "first-party source file bytes",
-  "totalSourceBytes": 105629,
+  "totalSourceBytes": 111211,
   "languages": [
     {
       "name": "Rust",
@@ -8,7 +8,7 @@
       "starterDirectory": "starters/rust",
       "fileCount": 1,
       "sourceBytes": 3042,
-      "actualPercent": 2.9,
+      "actualPercent": 2.7,
       "equalPercent": 12.5
     },
     {
@@ -17,7 +17,7 @@
       "starterDirectory": "starters/go",
       "fileCount": 2,
       "sourceBytes": 2599,
-      "actualPercent": 2.5,
+      "actualPercent": 2.3,
       "equalPercent": 12.5
     },
     {
@@ -26,16 +26,16 @@
       "starterDirectory": "starters/python",
       "fileCount": 4,
       "sourceBytes": 6244,
-      "actualPercent": 5.9,
+      "actualPercent": 5.6,
       "equalPercent": 12.5
     },
     {
       "name": "TypeScript",
       "extension": ".ts, .tsx",
       "starterDirectory": "starters/typescript",
-      "fileCount": 14,
-      "sourceBytes": 59514,
-      "actualPercent": 56.3,
+      "fileCount": 16,
+      "sourceBytes": 66233,
+      "actualPercent": 59.6,
       "equalPercent": 12.5
     },
     {
@@ -44,7 +44,7 @@
       "starterDirectory": "starters/javascript",
       "fileCount": 4,
       "sourceBytes": 2724,
-      "actualPercent": 2.6,
+      "actualPercent": 2.5,
       "equalPercent": 12.5
     },
     {
@@ -52,8 +52,8 @@
       "extension": ".sql",
       "starterDirectory": "starters/sql",
       "fileCount": 4,
-      "sourceBytes": 2271,
-      "actualPercent": 2.1,
+      "sourceBytes": 925,
+      "actualPercent": 0.8,
       "equalPercent": 12.5
     },
     {
@@ -61,8 +61,8 @@
       "extension": ".css",
       "starterDirectory": "starters/css",
       "fileCount": 2,
-      "sourceBytes": 27114,
-      "actualPercent": 25.7,
+      "sourceBytes": 27323,
+      "actualPercent": 24.6,
       "equalPercent": 12.5
     },
     {
@@ -71,7 +71,7 @@
       "starterDirectory": "starters/html",
       "fileCount": 2,
       "sourceBytes": 2121,
-      "actualPercent": 2,
+      "actualPercent": 1.9,
       "equalPercent": 12.5
     }
   ]

@@ -1,34 +1,41 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
-
-const supabase = supabaseUrl && supabaseKey
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') || null;
 
 export function isProfileClickTrackingConfigured() {
-  return supabase !== null;
+  return apiBaseUrl !== null;
 }
 
-async function callCounter(functionName: string): Promise<number> {
-  if (!supabase) {
-    throw new Error('Supabase profile-click tracking is not configured.');
+async function requestCount(method: 'GET' | 'POST'): Promise<number> {
+  if (!apiBaseUrl) {
+    throw new Error('Profile-click tracking API is not configured.');
   }
 
-  const { data, error } = await supabase.rpc(functionName);
-  if (error) throw error;
-  if (typeof data !== 'number' || !Number.isSafeInteger(data) || data < 0) {
-    throw new Error(`Supabase returned an invalid value from ${functionName}.`);
+  const response = await fetch(`${apiBaseUrl}/api/profile-clicks`, {
+    method,
+    headers: { Accept: 'application/json' },
+  });
+  if (!response.ok) {
+    throw new Error(`Profile-click tracking API returned ${response.status}.`);
   }
 
-  return data;
+  const payload: unknown = await response.json();
+  if (
+    !payload
+    || typeof payload !== 'object'
+    || !('count' in payload)
+    || typeof payload.count !== 'number'
+    || !Number.isSafeInteger(payload.count)
+    || payload.count < 0
+  ) {
+    throw new Error('Profile-click tracking API returned an invalid count.');
+  }
+
+  return payload.count;
 }
 
 export function getProfileClickCount() {
-  return callCounter('get_github_profile_click_count');
+  return requestCount('GET');
 }
 
 export function recordProfileClick() {
-  return callCounter('record_github_profile_click');
+  return requestCount('POST');
 }

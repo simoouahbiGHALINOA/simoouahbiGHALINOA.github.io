@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const sourceRoots = ['src', 'starters', 'supabase'];
+const sourceRoots = ['src', 'starters', 'api'];
 const languages = [
   { name: 'Rust', extensions: ['.rs'], extensionLabel: '.rs', starterDirectory: 'starters/rust' },
   { name: 'Go', extensions: ['.go'], extensionLabel: '.go', starterDirectory: 'starters/go' },
@@ -25,7 +25,13 @@ const totals = new Map(languages.map((language) => [language.name, { bytes: 0, f
 async function collectSourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dist' || entry.name === 'target') {
+    if (
+      entry.name.startsWith('.')
+      || entry.name === 'node_modules'
+      || entry.name === 'dist'
+      || entry.name === 'generated'
+      || entry.name === 'target'
+    ) {
       continue;
     }
 
