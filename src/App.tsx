@@ -30,7 +30,7 @@ const ThreeBackground = lazy(() => import('./components/ThreeBackground'));
 
 const PROFILE_URL = 'https://github.com/simoouahbiGHALINOA';
 const REPOSITORIES_URL = 'https://github.com/simoouahbiGHALINOA?tab=repositories';
-const GITHUB_SIGNUP_URL = 'https://github.com/signup?source=eco-domain&referrer=simoouahbiGHALINOA';
+const PROTECTED_USERS_URL = '/protectedUSERS_root_path_secure/';
 const SOURCE_URL = 'https://github.com/simoouahbiGHALINOA/HYPERSCALE-ecosystem';
 
 function readLayoutPreference(key: string, fallback: boolean) {
@@ -71,7 +71,7 @@ function EcoHeader({
       <div className="header-side header-side-right">
         <a className="header-link github-link" href={REPOSITORIES_URL} target="_blank" rel="noreferrer" aria-label="View all repositories on GitHub"><Github size={16} /><span>Repositories</span></a>
         <a className="icon-button toggle-button" href={SOURCE_URL} target="_blank" rel="noreferrer" aria-label="Open the original ECO ecosystem repository" title="Original ECO ecosystem"><ArrowUpRight size={18} /></a>
-        <a className="icon-button toggle-button" href={GITHUB_SIGNUP_URL} target="_blank" rel="noreferrer" aria-label="Register on GitHub" title="Register on GitHub"><UserPlus size={19} /></a>
+        <a className="icon-button toggle-button" href={PROTECTED_USERS_URL} aria-label="Sign in with GitHub" title="Sign in with GitHub"><UserPlus size={19} /></a>
         <button className="icon-button toggle-button right-toggle" type="button" onClick={onToggleRight} aria-label="Toggle right sidebar" aria-expanded={rightOpen} title="Toggle right sidebar (Ctrl+M)">
           {rightOpen ? <PanelRightClose size={19} /> : <PanelRightOpen size={19} />}
         </button>
@@ -96,6 +96,7 @@ function EcoLeftSidebar({ open, onClose }: { open: boolean; onClose: () => void 
             <div className="sidebar-divider" />
             <a href={SOURCE_URL} className="sidebar-link" target="_blank" rel="noreferrer"><ArrowUpRight size={18} /><span>ECOS-SYS source</span></a>
             <a href={PROFILE_URL} className="sidebar-link" target="_blank" rel="noreferrer"><Github size={18} /><span>GitHub profile</span></a>
+            <a href={PROTECTED_USERS_URL} className="sidebar-link"><UserPlus size={18} /><span>Protected users</span></a>
           </nav>
           <p className="sidebar-footnote">A small public starting point for the @eco ecosystem.</p>
         </div>

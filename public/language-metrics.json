@@ -1,6 +1,6 @@
 {
   "method": "first-party source file bytes",
-  "totalSourceBytes": 111211,
+  "totalSourceBytes": 138668,
   "languages": [
     {
       "name": "Rust",
@@ -8,7 +8,7 @@
       "starterDirectory": "starters/rust",
       "fileCount": 1,
       "sourceBytes": 3042,
-      "actualPercent": 2.7,
+      "actualPercent": 2.2,
       "equalPercent": 12.5
     },
     {
@@ -17,7 +17,7 @@
       "starterDirectory": "starters/go",
       "fileCount": 2,
       "sourceBytes": 2599,
-      "actualPercent": 2.3,
+      "actualPercent": 1.9,
       "equalPercent": 12.5
     },
     {
@@ -26,16 +26,16 @@
       "starterDirectory": "starters/python",
       "fileCount": 4,
       "sourceBytes": 6244,
-      "actualPercent": 5.6,
+      "actualPercent": 4.5,
       "equalPercent": 12.5
     },
     {
       "name": "TypeScript",
       "extension": ".ts, .tsx",
       "starterDirectory": "starters/typescript",
-      "fileCount": 16,
-      "sourceBytes": 66233,
-      "actualPercent": 59.6,
+      "fileCount": 20,
+      "sourceBytes": 89431,
+      "actualPercent": 64.5,
       "equalPercent": 12.5
     },
     {
@@ -44,25 +44,25 @@
       "starterDirectory": "starters/javascript",
       "fileCount": 4,
       "sourceBytes": 2724,
-      "actualPercent": 2.5,
+      "actualPercent": 2,
       "equalPercent": 12.5
     },
     {
       "name": "SQL",
       "extension": ".sql",
       "starterDirectory": "starters/sql",
-      "fileCount": 4,
-      "sourceBytes": 925,
-      "actualPercent": 0.8,
+      "fileCount": 5,
+      "sourceBytes": 2224,
+      "actualPercent": 1.6,
       "equalPercent": 12.5
     },
     {
       "name": "CSS",
       "extension": ".css",
       "starterDirectory": "starters/css",
-      "fileCount": 2,
-      "sourceBytes": 27323,
-      "actualPercent": 24.6,
+      "fileCount": 3,
+      "sourceBytes": 30283,
+      "actualPercent": 21.8,
       "equalPercent": 12.5
     },
     {
@@ -71,7 +71,7 @@
       "starterDirectory": "starters/html",
       "fileCount": 2,
       "sourceBytes": 2121,
-      "actualPercent": 1.9,
+      "actualPercent": 1.5,
       "equalPercent": 12.5
     }
   ]

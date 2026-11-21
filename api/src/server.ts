@@ -3,11 +3,21 @@
 import 'dotenv/config';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import {
+  createProtectedUserSession,
+  deleteProtectedUserSession,
   disconnectDatabase,
   getDatabaseProvider,
   getProfileClickCount,
+  getProtectedUserForSession,
   recordProfileClick,
+  upsertGitHubUser,
 } from './database.js';
+import {
+  completeGitHubLogin,
+  getCurrentProtectedUser,
+  logoutProtectedUser,
+  startGitHubLogin,
+} from './protectedUSERS_root_path_secure/githubAuth.js';
 
 const port = Number(process.env.PORT ?? 8787);
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
@@ -39,6 +49,7 @@ async function handleRequest(request: IncomingMessage, response: ServerResponse)
   if (origin) {
     response.setHeader('Access-Control-Allow-Origin', origin);
     response.setHeader('Vary', 'Origin');
+    response.setHeader('Access-Control-Allow-Credentials', 'true');
   }
   response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Accept, Content-Type');
@@ -50,6 +61,50 @@ async function handleRequest(request: IncomingMessage, response: ServerResponse)
   }
 
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
+  if (pathname === '/auth/github') {
+    if (request.method !== 'GET') {
+      response.setHeader('Allow', 'GET, OPTIONS');
+      sendJson(response, 405, { error: 'Method not allowed.' });
+      return;
+    }
+    startGitHubLogin(response);
+    return;
+  }
+  if (pathname === '/auth/github/callback') {
+    if (request.method !== 'GET') {
+      response.setHeader('Allow', 'GET, OPTIONS');
+      sendJson(response, 405, { error: 'Method not allowed.' });
+      return;
+    }
+    await completeGitHubLogin(request, response, {
+      createSession: createProtectedUserSession,
+      deleteSession: deleteProtectedUserSession,
+      saveUser: upsertGitHubUser,
+    });
+    return;
+  }
+  if (pathname === '/api/auth/me') {
+    if (request.method !== 'GET') {
+      response.setHeader('Allow', 'GET, OPTIONS');
+      sendJson(response, 405, { error: 'Method not allowed.' });
+      return;
+    }
+    await getCurrentProtectedUser(request, response, getProtectedUserForSession);
+    return;
+  }
+  if (pathname === '/api/auth/logout') {
+    if (request.method !== 'POST') {
+      response.setHeader('Allow', 'POST, OPTIONS');
+      sendJson(response, 405, { error: 'Method not allowed.' });
+      return;
+    }
+    if (!origin || !allowedOrigins.has(origin.toLowerCase())) {
+      sendJson(response, 403, { error: 'A trusted frontend origin is required.' });
+      return;
+    }
+    await logoutProtectedUser(request, response, deleteProtectedUserSession);
+    return;
+  }
   if (pathname === '/healthz' && request.method === 'GET') {
     await getProfileClickCount();
     sendJson(response, 200, { status: 'ok', databaseProvider: getDatabaseProvider() });

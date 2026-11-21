@@ -22,6 +22,7 @@ export default defineConfig({
         home: resolve(projectRoot, 'index.html'),
         about: resolve(projectRoot, 'about.html'),
         timeline: resolve(projectRoot, 'timeline.html'),
+        protectedUsers: resolve(projectRoot, 'protectedUSERS_root_path_secure/index.html'),
       },
     },
   },

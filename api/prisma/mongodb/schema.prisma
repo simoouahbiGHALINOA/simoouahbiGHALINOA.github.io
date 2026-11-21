@@ -13,3 +13,31 @@ model ProfileClickCounter {
   count     Int      @default(0)
   updatedAt DateTime @updatedAt
 }
+
+model ProtectedUser {
+  id          String                 @id @default(auto()) @map("_id") @db.ObjectId
+  githubId    String                 @unique
+  username    String
+  displayName String?
+  email       String?
+  avatarUrl   String?
+  profileUrl  String
+  createdAt   DateTime               @default(now())
+  lastLoginAt DateTime               @default(now())
+  sessions    ProtectedUserSession[]
+
+  @@map("protected_users")
+}
+
+model ProtectedUserSession {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String        @db.ObjectId
+  tokenHash String        @unique
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+  user      ProtectedUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("protected_user_sessions")
+}

@@ -1,59 +1,15 @@
 import React, { Suspense, useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { MeshDistortMaterial, Sphere } from '@react-three/drei';
 
 const pointer = { x: 0, y: 0 };
 
 function Scene({ dark }: { dark: boolean }) {
   return (
     <>
-      <ambientLight intensity={dark ? 0.42 : 0.82} />
-      <pointLight position={[10, 10, 10]} color="#3657ff" intensity={1.2} />
-      <pointLight position={[-10, -8, -8]} color="#5e31d7" intensity={0.9} />
-      <spotLight position={[0, 5, 0]} angle={0.35} penumbra={1} intensity={dark ? 1.4 : 0.9} />
       <fog attach="fog" args={[dark ? '#070812' : '#f5f2ee', 12, 72]} />
-      <Planet dark={dark} />
       <Starfield />
     </>
-  );
-}
-
-function Planet({ dark }: { dark: boolean }) {
-  const group = useRef<THREE.Group>(null);
-  useFrame(({ clock }, delta) => {
-    if (!group.current) return;
-    const t = clock.elapsedTime;
-    const smooth = 1 - Math.exp(-Math.min(delta, 0.1) * 3);
-    const x = 1 + pointer.x * 0.2 + Math.sin(t * 0.4) * 0.06;
-    const y = -1.1 + pointer.y * 0.18 + Math.cos(t * 0.3) * 0.05;
-    group.current.position.x += (x - group.current.position.x) * smooth;
-    group.current.position.y += (y - group.current.position.y) * smooth;
-    group.current.position.z = -0.8;
-    group.current.rotation.y = t * 0.08;
-    group.current.rotation.x = Math.sin(t * 0.2) * 0.08;
-  });
-
-  return (
-    <group ref={group}>
-      <Sphere args={[1.15, 64, 64]}>
-        <MeshDistortMaterial
-          color={dark ? '#160f2c' : '#e8e4ed'}
-          emissive={dark ? '#1328ad' : '#405bd4'}
-          emissiveIntensity={dark ? 0.28 : 0.12}
-          transparent
-          opacity={dark ? 0.42 : 0.2}
-          distort={0.34}
-          speed={1.6}
-          roughness={0.28}
-          metalness={0.8}
-        />
-      </Sphere>
-      <mesh rotation={[0.62, 0.2, -0.3]}>
-        <torusGeometry args={[1.62, 0.012, 8, 160]} />
-        <meshBasicMaterial color={dark ? '#5869fa' : '#5663a5'} transparent opacity={0.52} />
-      </mesh>
-    </group>
   );
 }
 

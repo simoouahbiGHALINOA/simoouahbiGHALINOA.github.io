@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate --schema prisma/postgresql/schema.prisma && prisma generate --schema prisma/mongodb/schema.prisma",
     "db:push:postgres": "prisma db push --schema prisma/postgresql/schema.prisma",
     "db:push:mongodb": "prisma db push --schema prisma/mongodb/schema.prisma",
-    "db:migrate:postgres": "prisma migrate deploy --schema prisma/postgresql/schema.prisma"
+    "db:migrate:postgres": "prisma migrate deploy --schema prisma/postgresql/schema.prisma",
+    "test": "tsx --test src/protectedUSERS_root_path_secure/githubAuth.test.ts"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
