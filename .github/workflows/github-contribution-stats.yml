@@ -1,0 +1,41 @@
+name: Update GitHub contribution stats
+
+on:
+  schedule:
+    - cron: "19 6 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/github-contribution-stats.yml
+      - scripts/update-github-contribution-stats.mjs
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate contribution SVG
+        env:
+          GITHUB_USERNAME: simoouahbiGHALINOA
+          GITHUB_OUTPUT_PATH: ../public/assets/github-contribution-stats.svg
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/update-github-contribution-stats.mjs
+      - name: Commit updated contribution stats
+        run: |
+          git config user.name "simoouahbiGHALINOA"
+          git config user.email "292614719+simoouahbiGHALINOA@users.noreply.github.com"
+          git add public/assets/github-contribution-stats.svg
+          if git diff --staged --quiet; then
+            echo "Contribution stats are already current."
+          else
+            git commit -m "chore: update GitHub contribution stats" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+            git push
+          fi

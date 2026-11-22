@@ -268,9 +268,9 @@ npm run security:semgrep     # Semgrep scan
 
 <div align="center">
 
-<img src="https://github-readme-stats-sigma-five.vercel.app/api?username=simoouahbiGHALINOA&show_icons=true&theme=radical&hide_border=true" alt="GitHub stats" />
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=simoouahbiGHALINOA&theme=radical&hide_border=true" alt="GitHub streak" />
-<img src="https://github-readme-stats-sigma-five.vercel.app/api/top-langs/?username=simoouahbiGHALINOA&layout=compact&theme=radical&hide_border=true" alt="Top languages" />
+<a href="https://github.com/simoouahbiGHALINOA">
+  <img src="public/assets/github-contribution-stats.svg" width="760" alt="Live GitHub contribution activity for simoouahbiGHALINOA" />
+</a>
 
 </div>
 
