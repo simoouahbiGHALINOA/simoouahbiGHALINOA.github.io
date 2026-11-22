@@ -36,6 +36,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Contribution stats are already current."
           else
-            git commit -m "chore: update GitHub contribution stats" -m "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+            git commit -m "chore: update GitHub contribution stats"
             git push
           fi
