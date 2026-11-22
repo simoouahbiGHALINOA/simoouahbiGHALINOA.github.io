@@ -116,7 +116,7 @@ export default function MusicPlayer() {
         const saved = readSavedPlayer();
         restoredTrack.current = saved?.trackId ?? '';
         restoredTime.current = saved?.currentTime ?? 0;
-        shouldAutoplayOnLoad.current = saved?.wasPlaying ?? true;
+        shouldAutoplayOnLoad.current = true;
         setNeedsResume(Boolean(saved?.wasPlaying));
       } catch (error) {
         if (active) setMessage(error instanceof Error ? error.message : 'The music library could not be loaded.');
@@ -229,8 +229,10 @@ export default function MusicPlayer() {
       setNeedsResume(false);
       setMessage('');
     } catch (error) {
-      setMessage(error instanceof Error && error.name === 'NotAllowedError'
-        ? 'Press Play to resume. Your browser blocks automatic playback.'
+      const autoplayBlocked = error instanceof Error && error.name === 'NotAllowedError';
+      setNeedsResume(autoplayBlocked);
+      setMessage(autoplayBlocked
+        ? 'Autoplay was blocked. Click or tap anywhere to start music.'
         : 'This track could not be played. Check that the audio file or URL is available.');
     }
   }, [activeTrack]);
@@ -243,6 +245,17 @@ export default function MusicPlayer() {
     shouldAutoplayOnLoad.current = false;
     void play();
   }, [activeTrack, isReady, play, tracks]);
+
+  useEffect(() => {
+    if (!needsResume) return;
+    const resumeAfterInteraction = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && audio.current?.parentElement?.contains(target)) return;
+      playTrackRef.current();
+    };
+    window.addEventListener('pointerdown', resumeAfterInteraction);
+    return () => window.removeEventListener('pointerdown', resumeAfterInteraction);
+  }, [needsResume]);
 
   const savePrivateUrls = (next: PrivateUrlTrack[]) => {
     try {
@@ -352,9 +365,13 @@ export default function MusicPlayer() {
     <div className="music-player" id="listen">
       <audio
         ref={audio}
+        loop={tracks.length === 1}
         preload="none"
         onTimeUpdate={onTimeUpdate}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true);
+          setNeedsResume(false);
+        }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => {
           setIsPlaying(false);
@@ -413,7 +430,7 @@ export default function MusicPlayer() {
         <span style={{ width: `${progress * 100}%` }} />
       </div>
       <button type="button" className="player-icon library-toggle" aria-label="Manage playlist" title="Manage playlist" onClick={() => setIsOpen((open) => !open)}><ListMusic size={18} /></button>
-      <span className="visually-hidden" role="status">{message || (needsResume ? 'Playback position restored. Press Play to resume.' : '')}</span>
+      <span className="visually-hidden" role="status">{message || (needsResume ? 'Playback position restored. Click or tap anywhere to resume.' : '')}</span>
     </div>
   );
 }

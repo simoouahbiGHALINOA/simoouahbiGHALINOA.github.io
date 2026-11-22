@@ -254,6 +254,7 @@ function EcoFooter() {
 export default function App() {
   const [leftOpen, setLeftOpen] = useState(() => readLayoutPreference('eco-starter:left-open', window.innerWidth > 900));
   const [rightOpen, setRightOpen] = useState(() => readLayoutPreference('eco-starter:right-open', false));
+  const [pathname, setPathname] = useState(() => window.location.pathname);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       const saved = window.localStorage.getItem(ECO_STORAGE_KEYS.theme)
@@ -264,8 +265,52 @@ export default function App() {
       return 'dark';
     }
   });
-  const isAbout = window.location.pathname.endsWith('/about.html');
-  const isTimeline = window.location.pathname.endsWith('/timeline.html');
+  const isAbout = pathname.endsWith('/about.html');
+  const isTimeline = pathname.endsWith('/timeline.html');
+
+  useEffect(() => {
+    const appPaths = new Set(['/', '/index.html', '/about.html', '/timeline.html']);
+    const handleNavigation = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest('a');
+      if (!anchor || (anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return;
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin || !appPaths.has(destination.pathname)) return;
+      if (destination.pathname === window.location.pathname && destination.search === window.location.search) {
+        if (destination.hash !== window.location.hash) return;
+        event.preventDefault();
+        return;
+      }
+      event.preventDefault();
+      window.history.pushState(null, '', destination.href);
+      setPathname(destination.pathname);
+    };
+    const handleHistoryNavigation = () => setPathname(window.location.pathname);
+    document.addEventListener('click', handleNavigation);
+    window.addEventListener('popstate', handleHistoryNavigation);
+    return () => {
+      document.removeEventListener('click', handleNavigation);
+      window.removeEventListener('popstate', handleHistoryNavigation);
+    };
+  }, []);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      window.requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
