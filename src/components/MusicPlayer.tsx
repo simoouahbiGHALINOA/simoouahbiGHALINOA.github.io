@@ -31,6 +31,7 @@ interface AudioEnhancerGraph {
   context: AudioContext;
   source: MediaElementAudioSourceNode;
   gain: GainNode;
+  bass: BiquadFilterNode;
 }
 
 function canEnhanceTrack(track: PlayerTrack | undefined) {
@@ -102,7 +103,8 @@ export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [needsResume, setNeedsResume] = useState(false);
-  const [amplification, setAmplification] = useState(1.7);
+  const [amplification, setAmplification] = useState(6);
+  const [bassBoost, setBassBoost] = useState(10);
   const [isEnhanced, setIsEnhanced] = useState(false);
   const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -134,7 +136,7 @@ export default function MusicPlayer() {
     setMessage('Audio enhancement could not start; switching to standard playback.');
   }, [activeTrack]);
 
-  const enableAudioEnhancement = useCallback((gainLevel = amplification) => {
+  const enableAudioEnhancement = useCallback((gainLevel = amplification, bassLevel = bassBoost) => {
     const element = audio.current;
     if (!element || !activeTrack) return false;
     if (useNativePlayback) return false;
@@ -151,8 +153,8 @@ export default function MusicPlayer() {
         source = context.createMediaElementSource(element);
         const lowShelf = context.createBiquadFilter();
         lowShelf.type = 'lowshelf';
-        lowShelf.frequency.value = 180;
-        lowShelf.gain.value = -1.5;
+        lowShelf.frequency.value = 110;
+        lowShelf.gain.value = bassLevel;
         const clarity = context.createBiquadFilter();
         clarity.type = 'peaking';
         clarity.frequency.value = 2800;
@@ -162,29 +164,37 @@ export default function MusicPlayer() {
         highShelf.type = 'highshelf';
         highShelf.frequency.value = 7500;
         highShelf.gain.value = 1;
+        const compressor = context.createDynamicsCompressor();
+        compressor.threshold.value = -18;
+        compressor.knee.value = 12;
+        compressor.ratio.value = 6;
+        compressor.attack.value = 0.003;
+        compressor.release.value = 0.25;
         const gain = context.createGain();
         gain.gain.value = gainLevel;
-        const compressor = context.createDynamicsCompressor();
-        compressor.threshold.value = -10;
-        compressor.knee.value = 8;
-        compressor.ratio.value = 8;
-        compressor.attack.value = 0.004;
-        compressor.release.value = 0.2;
+        const limiter = context.createDynamicsCompressor();
+        limiter.threshold.value = -1.5;
+        limiter.knee.value = 0;
+        limiter.ratio.value = 20;
+        limiter.attack.value = 0.001;
+        limiter.release.value = 0.08;
         source.connect(lowShelf);
         lowShelf.connect(clarity);
         clarity.connect(highShelf);
-        highShelf.connect(gain);
-        gain.connect(compressor);
-        compressor.connect(context.destination);
-        graph = { context, source, gain };
+        highShelf.connect(compressor);
+        compressor.connect(gain);
+        gain.connect(limiter);
+        limiter.connect(context.destination);
+        graph = { context, source, gain, bass: lowShelf };
         audioEnhancer.current = graph;
       }
       graph.gain.gain.setTargetAtTime(gainLevel, graph.context.currentTime, 0.04);
+      graph.bass.gain.setTargetAtTime(bassLevel, graph.context.currentTime, 0.04);
       if (graph.context.state === 'suspended') {
         void graph.context.resume().catch(switchToNativePlayback);
       }
       setIsEnhanced(true);
-      setMessage(`Amplified sound is on at ${gainLevel.toFixed(1)}× with gentle clarity tuning.`);
+      setMessage(`Power mode is on: ${gainLevel.toFixed(1)}× amplification and +${bassLevel} dB bass.`);
       return true;
     } catch (error) {
       const graph = audioEnhancer.current;
@@ -202,7 +212,7 @@ export default function MusicPlayer() {
       if (error instanceof Error) setMessage(`Audio enhancement is unavailable: ${error.message}. Switched to standard playback.`);
       return false;
     }
-  }, [activeTrack, amplification, switchToNativePlayback, useNativePlayback]);
+  }, [activeTrack, amplification, bassBoost, switchToNativePlayback, useNativePlayback]);
 
   useEffect(() => {
     if (audioProcessingEnabled) return;
@@ -531,14 +541,14 @@ export default function MusicPlayer() {
           <div className="audio-enhancer">
             <label htmlFor="music-amplifier">
               <Volume2 size={17} aria-hidden="true" />
-              <span><strong>Amplifier · {amplification.toFixed(1)}×</strong><small>{isEnhanced ? 'Amplification and clarity tuning are on' : 'Boost volume and improve clarity'}</small></span>
+              <span><strong>Power amplifier · {amplification.toFixed(1)}×</strong><small>{isEnhanced ? 'Amplification, bass, and clarity are on' : 'Strong loudness boost with peak limiting'}</small></span>
             </label>
             <input
               id="music-amplifier"
               type="range"
               min="1"
-              max="2.5"
-              step="0.1"
+              max="10"
+              step="0.25"
               value={amplification}
               disabled={!audioProcessingEnabled}
               aria-label="Music amplification"
@@ -548,7 +558,30 @@ export default function MusicPlayer() {
                 if (audioProcessingEnabled) enableAudioEnhancement(next);
               }}
             />
-            <small className="audio-enhancer-note">Gentle EQ adds clarity; peak compression helps reduce distortion. Keep your device volume comfortable.</small>
+            <label htmlFor="music-bass-boost" className="bass-boost-label">
+              <span><strong>Bass boost · +{bassBoost} dB</strong><small>Low-frequency boost at 110 Hz</small></span>
+            </label>
+            <input
+              id="music-bass-boost"
+              type="range"
+              min="0"
+              max="18"
+              step="1"
+              value={bassBoost}
+              disabled={!audioProcessingEnabled}
+              aria-label="Bass boost"
+              onChange={(event) => {
+                const next = Number(event.currentTarget.value);
+                setBassBoost(next);
+                if (audioProcessingEnabled) enableAudioEnhancement(amplification, next);
+              }}
+            />
+            <button type="button" className="secondary-button power-preset" onClick={() => {
+              setAmplification(10);
+              setBassBoost(18);
+              if (audioProcessingEnabled) enableAudioEnhancement(10, 18);
+            }}>MAX POWER · 10× + 18 dB BASS</button>
+            <small className="audio-enhancer-note">Strong compression raises average loudness; a peak limiter controls spikes. This can be very loud—start with low device volume.</small>
           </div>
           <div className="track-list">
             {tracks.length ? tracks.map((track, index) => (
