@@ -1,4 +1,4 @@
-const DATABASE_NAME = 'eco-starter-music';
+const DATABASE_NAME = 'eco-browser-music-v1';
 const STORE_NAME = 'device-tracks';
 
 export interface StoredDeviceTrack {
