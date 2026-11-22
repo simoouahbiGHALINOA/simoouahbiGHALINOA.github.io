@@ -166,8 +166,17 @@ export default function MusicPlayer() {
         setMessage(error instanceof Error ? error.message : 'The playback position could not be saved.');
       }
     };
+    const saveWhenHidden = () => {
+      if (document.visibilityState === 'hidden') saveBeforeLeaving();
+    };
     window.addEventListener('pagehide', saveBeforeLeaving);
-    return () => window.removeEventListener('pagehide', saveBeforeLeaving);
+    window.addEventListener('beforeunload', saveBeforeLeaving);
+    document.addEventListener('visibilitychange', saveWhenHidden);
+    return () => {
+      window.removeEventListener('pagehide', saveBeforeLeaving);
+      window.removeEventListener('beforeunload', saveBeforeLeaving);
+      document.removeEventListener('visibilitychange', saveWhenHidden);
+    };
   }, []);
 
   const selectTrack = useCallback((index: number, continuePlaying = false) => {
