@@ -44,6 +44,16 @@ This is a root-level GitHub Pages site for `simoouahbiGHALINOA.github.io`.
 
 Static files are stored in `public/` and are served from the site root. For example, `public/assets/readme-3d-banner.png` is available at `/assets/readme-3d-banner.png`. GitHub profile links open the profile; visitors must click **Follow** on GitHub themselves while signed in. The dedicated Follow buttons also update an aggregate click counter; it does not detect or claim that a visitor followed.
 
+## Installable app and offline use
+
+On supported browsers, choose **Install this app** in Settings or use the
+browser's **Add to Home Screen** option. After the first online visit, the
+service worker caches the app shell and static assets; previously opened pages
+can then load offline. Music selected in the player is stored privately in
+that site's IndexedDB on the current device. Browsers with the File System
+Access API use its audio picker; other browsers keep the standard file picker.
+Push notifications need a backend and are not enabled yet.
+
 ## API and database
 
 The GitHub Pages site remains the public frontend at `https://simoouahbighalinoa.github.io`. GitHub Pages only serves static files, so the Prisma API in [`api/`](./api/) must run on a server host (for example Railway); the browser talks to that API and never receives database credentials. The API supports PostgreSQL and MongoDB through separate Prisma schemas. MongoDB is the initial provider in `api/.env.example`; set `DATABASE_PROVIDER=postgresql` to choose PostgreSQL instead. One provider is active per API deployment; the two databases are alternatives, not dual-written replicas. The API also handles GitHub OAuth and stores user profiles and hashed sessions in the selected database.
@@ -149,14 +159,14 @@ The starter kit keeps one runnable example per language in a separate folder. Ea
 <!-- language-metrics:start -->
 | Language | Equal starter share | Measured source share | Files | File types | Starter |
 |----------|---------------------|-----------------------|-------|------------|---------|
-| 🦀 Rust | 12.5% | 2.2% | 1 | `.rs` | [Open](./starters/rust/README.md) |
-| 🐹 Go | 12.5% | 1.8% | 2 | `.go` | [Open](./starters/go/README.md) |
-| 🐍 Python | 12.5% | 4.4% | 4 | `.py` | [Open](./starters/python/README.md) |
-| 🔷 TypeScript | 12.5% | 65.2% | 21 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
-| ⚡ JavaScript | 12.5% | 1.9% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
-| 🗃️ SQL | 12.5% | 1.6% | 5 | `.sql` | [Open](./starters/sql/README.md) |
-| 🎨 CSS | 12.5% | 21.4% | 3 | `.css` | [Open](./starters/css/README.md) |
-| 🌐 HTML | 12.5% | 1.5% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
+| 🦀 Rust | 12.5% | 1.7% | 1 | `.rs` | [Open](./starters/rust/README.md) |
+| 🐹 Go | 12.5% | 1.5% | 2 | `.go` | [Open](./starters/go/README.md) |
+| 🐍 Python | 12.5% | 3.6% | 4 | `.py` | [Open](./starters/python/README.md) |
+| 🔷 TypeScript | 12.5% | 61.7% | 22 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
+| ⚡ JavaScript | 12.5% | 1.6% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
+| 🗃️ SQL | 12.5% | 1.3% | 5 | `.sql` | [Open](./starters/sql/README.md) |
+| 🎨 CSS | 12.5% | 27.4% | 4 | `.css` | [Open](./starters/css/README.md) |
+| 🌐 HTML | 12.5% | 1.2% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
 <!-- language-metrics:end -->
 
 Language metrics are generated with `npm run generate:language-metrics` before development and production builds. See the live cards on the [home page](https://simoouahbiGHALINOA.github.io/#languages). All first-party starter code uses the repository's MIT license; the SPDX headers and root [LICENSE](./LICENSE) are the source of truth.

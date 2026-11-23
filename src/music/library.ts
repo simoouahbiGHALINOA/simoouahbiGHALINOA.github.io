@@ -8,6 +8,32 @@ export interface StoredDeviceTrack {
   file: Blob;
 }
 
+interface AudioFileHandle {
+  getFile(): Promise<File>;
+}
+
+interface AudioFilePickerWindow extends Window {
+  showOpenFilePicker?: (options: {
+    multiple: boolean;
+    types: Array<{ description: string; accept: Record<string, string[]> }>;
+  }) => Promise<AudioFileHandle[]>;
+}
+
+export async function chooseAudioFiles(): Promise<File[] | null> {
+  const pickerWindow = window as AudioFilePickerWindow;
+  if (!pickerWindow.showOpenFilePicker) return null;
+  const handles = await pickerWindow.showOpenFilePicker({
+    multiple: true,
+    types: [{
+      description: 'Audio files',
+      accept: {
+        'audio/*': ['.aac', '.flac', '.m4a', '.mp3', '.oga', '.ogg', '.opus', '.wav', '.weba'],
+      },
+    }],
+  });
+  return Promise.all(handles.map((handle) => handle.getFile()));
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (!('indexedDB' in window)) {
