@@ -161,11 +161,11 @@ The starter kit keeps one runnable example per language in a separate folder. Ea
 |----------|---------------------|-----------------------|-------|------------|---------|
 | 🦀 Rust | 12.5% | 1.7% | 1 | `.rs` | [Open](./starters/rust/README.md) |
 | 🐹 Go | 12.5% | 1.5% | 2 | `.go` | [Open](./starters/go/README.md) |
-| 🐍 Python | 12.5% | 3.6% | 4 | `.py` | [Open](./starters/python/README.md) |
-| 🔷 TypeScript | 12.5% | 61.7% | 22 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
-| ⚡ JavaScript | 12.5% | 1.6% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
-| 🗃️ SQL | 12.5% | 1.3% | 5 | `.sql` | [Open](./starters/sql/README.md) |
-| 🎨 CSS | 12.5% | 27.4% | 4 | `.css` | [Open](./starters/css/README.md) |
+| 🐍 Python | 12.5% | 3.5% | 4 | `.py` | [Open](./starters/python/README.md) |
+| 🔷 TypeScript | 12.5% | 62.6% | 22 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
+| ⚡ JavaScript | 12.5% | 1.5% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
+| 🗃️ SQL | 12.5% | 1.2% | 5 | `.sql` | [Open](./starters/sql/README.md) |
+| 🎨 CSS | 12.5% | 26.8% | 4 | `.css` | [Open](./starters/css/README.md) |
 | 🌐 HTML | 12.5% | 1.2% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
 <!-- language-metrics:end -->
 

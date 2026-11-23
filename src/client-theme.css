@@ -113,7 +113,7 @@
 .skip-link { background: var(--accent); }
 .brand-mark { border-color: var(--accent-border); background: var(--accent-soft); }
 .hero-avatar { border-color: var(--accent-border); }
-.gradient-text { background: linear-gradient(110deg, var(--accent-strong), var(--accent) 54%, var(--accent-strong)); }
+.gradient-text { background: linear-gradient(110deg, var(--accent-strong), var(--accent) 54%, var(--accent-strong)); -webkit-background-clip: text; background-clip: text; }
 .primary-button { background: var(--accent); box-shadow: 0 8px 26px var(--accent-glow); }
 .primary-button:hover { background: var(--accent-strong); }
 .secondary-button:hover { border-color: var(--accent-border); }
@@ -130,6 +130,7 @@
 .language-card-footer a, .record-icon { color: var(--accent-strong); }
 .record-icon { border-color: var(--accent-border); }
 .expandable-text-toggle { color: var(--accent-strong); }
+.storage-note { margin: 0.65rem 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.45; }
 
 .eco-header { backdrop-filter: blur(8px); }
 .brand-label { letter-spacing: 0.02em; }
@@ -140,7 +141,8 @@
 .page-main::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: var(--scrollbar-thumb); background-clip: content-box; }
 .page-main::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
 .hero-section { position: relative; display: flex; align-items: center; justify-content: center; min-height: calc(100dvh - var(--header-total-height) - var(--footer-total-height)); padding: clamp(3rem, 7vh, 5rem) 0; overflow: hidden; }
-.hero-content { position: relative; z-index: 1; width: min(100%, 1180px); margin: auto; padding: clamp(1rem, 2.5vw, 2rem); border: 1px solid var(--glass-border); border-radius: 1.5rem; background: transparent; text-align: center; }
+.hero-content { position: relative; z-index: 1; width: min(100%, 1690px); margin: auto; padding: clamp(1rem, 2.5vw, 2rem); border: 1px solid var(--glass-border); border-radius: 1.5rem; background: transparent; text-align: center; }
+@media (min-width: 901px) { .hero-content { height: 529px; display: flex; flex-direction: column; justify-content: center; padding: 1.5rem clamp(1rem, 2.5vw, 2rem); } }
 .hero-heading-row { display: flex; align-items: center; justify-content: center; gap: clamp(1rem, 2.5vw, 2.5rem); text-align: left; }
 .hero-heading-row h1 { flex: 1 1 auto; min-width: 0; }
 .hero-subtitle, .hero-caption, .follow-click-note { font-style: normal; font-weight: 400; }

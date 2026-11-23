@@ -434,7 +434,8 @@ export default function MusicPlayer() {
         return { ...track, src };
       });
       setDeviceTracks((current) => [...current, ...next]);
-      setMessage(`${next.length} track${next.length === 1 ? '' : 's'} saved privately on this device.`);
+      const storageLocation = added[0]?.storage === 'opfs' ? 'the browser File System (OPFS)' : 'IndexedDB';
+      setMessage(`${next.length} track${next.length === 1 ? '' : 's'} saved privately in ${storageLocation} on this device.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'The selected music could not be saved.');
     } finally {
@@ -617,6 +618,7 @@ export default function MusicPlayer() {
           <div className="add-music">
             <button type="button" className="secondary-button" onClick={() => void openAudioPicker()}><Upload size={15} /> Add audio files</button>
             <input ref={fileInput} className="visually-hidden" type="file" accept="audio/*" multiple onChange={(event) => void addFiles(event.currentTarget.files)} />
+            <p className="storage-note">Imported files use this browser's File System (OPFS) when available, with IndexedDB as a fallback.</p>
             <form className="url-form" onSubmit={addUrl}>
               <label htmlFor="track-title">Save an audio URL to this device</label>
               <input id="track-title" value={urlTitle} onChange={(event) => setUrlTitle(event.target.value)} placeholder="Track title (optional)" />
