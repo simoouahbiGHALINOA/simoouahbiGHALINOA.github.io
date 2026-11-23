@@ -149,49 +149,55 @@ export default function MusicPlayer() {
     try {
       let graph = audioEnhancer.current;
       if (!graph) {
-        context = new AudioContext();
-        source = context.createMediaElementSource(element);
-        const lowShelf = context.createBiquadFilter();
+        const audioContext = new AudioContext();
+        context = audioContext;
+        const mediaSource = audioContext.createMediaElementSource(element);
+        source = mediaSource;
+        const lowShelf = audioContext.createBiquadFilter();
         lowShelf.type = 'lowshelf';
         lowShelf.frequency.value = 110;
         lowShelf.gain.value = bassLevel;
-        const clarity = context.createBiquadFilter();
+        const clarity = audioContext.createBiquadFilter();
         clarity.type = 'peaking';
         clarity.frequency.value = 2800;
         clarity.Q.value = 0.9;
         clarity.gain.value = 2;
-        const highShelf = context.createBiquadFilter();
+        const highShelf = audioContext.createBiquadFilter();
         highShelf.type = 'highshelf';
         highShelf.frequency.value = 7500;
         highShelf.gain.value = 1;
-        const compressor = context.createDynamicsCompressor();
+        const compressor = audioContext.createDynamicsCompressor();
         compressor.threshold.value = -18;
         compressor.knee.value = 12;
         compressor.ratio.value = 6;
         compressor.attack.value = 0.003;
         compressor.release.value = 0.25;
-        const gain = context.createGain();
+        const gain = audioContext.createGain();
         gain.gain.value = gainLevel;
-        const limiter = context.createDynamicsCompressor();
+        const limiter = audioContext.createDynamicsCompressor();
         limiter.threshold.value = -1.5;
         limiter.knee.value = 0;
         limiter.ratio.value = 20;
         limiter.attack.value = 0.001;
         limiter.release.value = 0.08;
-        source.connect(lowShelf);
+        mediaSource.connect(lowShelf);
         lowShelf.connect(clarity);
         clarity.connect(highShelf);
         highShelf.connect(compressor);
         compressor.connect(gain);
         gain.connect(limiter);
-        limiter.connect(context.destination);
-        graph = { context, source, gain, bass: lowShelf };
+        limiter.connect(audioContext.destination);
+        graph = { context: audioContext, source: mediaSource, gain, bass: lowShelf };
         audioEnhancer.current = graph;
       }
+      if (!graph) throw new Error('The audio processing graph could not be created.');
       graph.gain.gain.setTargetAtTime(gainLevel, graph.context.currentTime, 0.04);
       graph.bass.gain.setTargetAtTime(bassLevel, graph.context.currentTime, 0.04);
-      if (graph.context.state === 'suspended') {
-        void graph.context.resume().catch(switchToNativePlayback);
+      const graphContext = graph.context;
+      if (graphContext.state !== 'running') {
+        void graphContext.resume().then(() => {
+          if (graphContext.state !== 'running') switchToNativePlayback();
+        }).catch(switchToNativePlayback);
       }
       setIsEnhanced(true);
       setMessage(`Power mode is on: ${gainLevel.toFixed(1)}× amplification and +${bassLevel} dB bass.`);
