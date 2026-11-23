@@ -85,6 +85,12 @@ function savePlayer(trackId: string, currentTime: number, wasPlaying: boolean) {
   }
 }
 
+function hasAudibleVideo() {
+  return Array.from(document.querySelectorAll('video')).some(
+    (video) => !video.paused && !video.ended && !video.muted && video.volume > 0,
+  );
+}
+
 export default function MusicPlayer() {
   const audio = useRef<HTMLAudioElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -93,6 +99,7 @@ export default function MusicPlayer() {
   const shouldAutoplayOnLoad = useRef(true);
   const playAfterLoad = useRef(false);
   const playTrackRef = useRef<() => void>(() => {});
+  const pausedByVideoRef = useRef(false);
   const activeTrackRef = useRef<PlayerTrack | undefined>(undefined);
   const audioEnhancer = useRef<AudioEnhancerGraph | null>(null);
   const objectUrls = useRef(new Set<string>());
@@ -336,6 +343,11 @@ export default function MusicPlayer() {
   const play = useCallback(async (enhance = false) => {
     const element = audio.current;
     if (!element || !activeTrack) return;
+    if (hasAudibleVideo()) {
+      pausedByVideoRef.current = true;
+      setMessage('Music paused while a video has sound. Mute or pause the video to resume music.');
+      return;
+    }
     const enhancementStarted = enhance && enableAudioEnhancement();
     if (enhance && !enhancementStarted && enhancementSupported && !useNativePlayback) {
       playAfterLoad.current = true;
@@ -389,6 +401,38 @@ export default function MusicPlayer() {
     }
   }, [activeTrack, enableAudioEnhancement, enhancementSupported, useNativePlayback]);
   playTrackRef.current = () => { void play(true); };
+
+  useEffect(() => {
+    const synchronizeAudio = () => {
+      const element = audio.current;
+      if (hasAudibleVideo()) {
+        if (!element || element.paused) return;
+        pausedByVideoRef.current = true;
+        const track = activeTrackRef.current;
+        if (track) {
+          try {
+            savePlayer(track.id, element.currentTime, false);
+          } catch (error) {
+            setMessage(error instanceof Error ? error.message : 'The playback position could not be saved.');
+          }
+        }
+        element.pause();
+        setMessage('Music paused while a video has sound. Mute or pause the video to resume music.');
+        return;
+      }
+
+      if (pausedByVideoRef.current) {
+        pausedByVideoRef.current = false;
+        playTrackRef.current();
+      }
+    };
+    const mediaEvents = ['play', 'playing', 'pause', 'ended', 'volumechange'];
+    mediaEvents.forEach((event) => document.addEventListener(event, synchronizeAudio, true));
+    synchronizeAudio();
+    return () => {
+      mediaEvents.forEach((event) => document.removeEventListener(event, synchronizeAudio, true));
+    };
+  }, []);
 
   useEffect(() => {
     if (!isReady || !activeTrack || !shouldAutoplayOnLoad.current) return;
