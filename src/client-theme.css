@@ -196,7 +196,6 @@
 .now-playing { flex: 0 1 10rem; }
 .player-icon { width: 1.8rem; height: 1.8rem; }
 .library-toggle { margin-left: 0.15rem; }
-.audio-enhancer-note { color: var(--muted); }
 .pwa-install-message { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.73rem; line-height: 1.5; }
 
 @media (max-width: 900px) {
