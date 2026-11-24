@@ -5,7 +5,6 @@ import { addDeviceTracks, chooseAudioFiles, readDeviceTracks, removeDeviceTrack,
 
 const PLAYER_KEY = 'eco-starter:player';
 const PRIVATE_URLS_KEY = 'eco-starter:private-urls';
-const SMALL_SCREEN_QUERY = '(max-width: 640px)';
 
 interface PlayerTrack {
   id: string;
@@ -116,9 +115,7 @@ export default function MusicPlayer() {
   const [isReady, setIsReady] = useState(false);
   const [needsResume, setNeedsResume] = useState(false);
   const [volumePercent, setVolumePercent] = useState(100);
-  const [useNativePlayback, setUseNativePlayback] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(SMALL_SCREEN_QUERY).matches,
-  );
+  const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [urlTitle, setUrlTitle] = useState('');
@@ -139,7 +136,7 @@ export default function MusicPlayer() {
   const volumeBass = volumeBoost * 18;
   activeTrackRef.current = activeTrack;
 
-  const switchToNativePlayback = useCallback((showNotice = true) => {
+  const switchToNativePlayback = useCallback(() => {
     const element = audio.current;
     if (element && activeTrack) {
       restoredTrack.current = activeTrack.id;
@@ -148,17 +145,8 @@ export default function MusicPlayer() {
     }
     setUseNativePlayback(true);
     if (element) element.volume = Math.min(volumePercent, 100) / 100;
-    if (showNotice) setMessage('Volume boost is unavailable for this track; standard volume is available.');
+    setMessage('Volume boost is unavailable for this track; standard volume is available.');
   }, [activeTrack, volumePercent]);
-
-  useEffect(() => {
-    const smallScreen = window.matchMedia(SMALL_SCREEN_QUERY);
-    const useNativeOnSmallScreen = (event: MediaQueryListEvent) => {
-      if (event.matches) switchToNativePlayback(false);
-    };
-    smallScreen.addEventListener('change', useNativeOnSmallScreen);
-    return () => smallScreen.removeEventListener('change', useNativeOnSmallScreen);
-  }, [switchToNativePlayback]);
 
   const enableAudioEnhancement = useCallback((gainLevel = volumeGain, bassLevel = volumeBass) => {
     const element = audio.current;
@@ -213,6 +201,11 @@ export default function MusicPlayer() {
         limiter.connect(audioContext.destination);
         graph = { context: audioContext, source: mediaSource, gain, bass: lowShelf, clarity, highShelf, compressor, limiter };
         audioEnhancer.current = graph;
+        audioContext.addEventListener('statechange', () => {
+          if (audioContext.state === 'suspended' && !element.paused && document.visibilityState === 'visible') {
+            void audioContext.resume().catch(switchToNativePlayback);
+          }
+        });
       }
       if (!graph) throw new Error('The audio processing graph could not be created.');
       const boost = Math.max(0, Math.min(1, (gainLevel - 1) / 9));
@@ -230,7 +223,7 @@ export default function MusicPlayer() {
       if (graphContext.state !== 'running') {
         void graphContext.resume().then(() => {
           if (graphContext.state !== 'running') switchToNativePlayback();
-        }).catch(() => switchToNativePlayback());
+        }).catch(switchToNativePlayback);
       }
       setMessage('');
       return true;
@@ -608,6 +601,11 @@ export default function MusicPlayer() {
         ref={audio}
         loop={tracks.length === 1}
         preload="none"
+        onVolumeChange={() => {
+          if (volumePercent > 100 && audioProcessingEnabled) {
+            enableAudioEnhancement(volumeGain, volumeBass);
+          }
+        }}
         onTimeUpdate={onTimeUpdate}
         onPlay={() => {
           setIsPlaying(true);
