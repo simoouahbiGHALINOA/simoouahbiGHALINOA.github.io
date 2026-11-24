@@ -133,9 +133,10 @@
 .storage-note { margin: 0.65rem 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.45; }
 
 .eco-header { backdrop-filter: blur(8px); }
-.brand-label { letter-spacing: 0.02em; }
+.brand { padding: 0.2rem 0.35rem; border: 1px solid var(--accent-border); border-radius: 0.65rem; }
+.brand-label { padding: 0.2rem 0.4rem; border-radius: 0.35rem; background: var(--accent-soft); letter-spacing: 0.02em; }
 .left-sidebar, .right-sidebar { backdrop-filter: blur(8px); transition: none; }
-.page-main { scrollbar-gutter: stable both-edges; scrollbar-color: var(--scrollbar-thumb) transparent; }
+.page-main { scrollbar-gutter: stable both-edges; scrollbar-color: var(--scrollbar-thumb) transparent; scrollbar-width: thin; }
 .page-main::-webkit-scrollbar { width: 8px; height: 8px; }
 .page-main::-webkit-scrollbar-track { background: transparent; }
 .page-main::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: var(--scrollbar-thumb); background-clip: content-box; }
@@ -146,7 +147,6 @@
 @media (min-width: 901px) { .hero-content { padding: 1.5rem clamp(1rem, 2.5vw, 2rem); } }
 @media (min-width: 901px) {
   .hero-content { max-width: 1507px; min-height: min(633px, calc(100dvh - var(--header-total-height) - var(--footer-total-height) - var(--hero-padding-top) - var(--hero-padding-bottom))); gap: clamp(0.5rem, 1.5vh, 1rem); }
-  .page-main { scrollbar-width: thin; }
   .hero-actions { margin-top: 1rem; }
   .hero-caption { margin-top: 0.75rem; }
 }
