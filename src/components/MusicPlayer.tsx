@@ -148,6 +148,17 @@ export default function MusicPlayer() {
     setMessage('Volume boost is unavailable for this track; standard volume is available.');
   }, [activeTrack, volumePercent]);
 
+  const switchToEnhancedPlayback = useCallback(() => {
+    const element = audio.current;
+    if (element && activeTrack) {
+      restoredTrack.current = activeTrack.id;
+      restoredTime.current = Number.isFinite(element.currentTime) ? element.currentTime : 0;
+      playAfterLoad.current = !element.paused;
+    }
+    setUseNativePlayback(false);
+    setMessage('');
+  }, [activeTrack]);
+
   const enableAudioEnhancement = useCallback((gainLevel = volumeGain, bassLevel = volumeBass) => {
     const element = audio.current;
     if (!element || !activeTrack) return false;
@@ -245,10 +256,10 @@ export default function MusicPlayer() {
   }, [activeTrack, switchToNativePlayback, useNativePlayback, volumeBass, volumeGain]);
 
   useEffect(() => {
-    if (audioProcessingEnabled || volumePercent <= 100) return;
+    if (enhancementSupported || volumePercent <= 100) return;
     setVolumePercent(100);
     if (audio.current) audio.current.volume = 1;
-  }, [audioProcessingEnabled, volumePercent]);
+  }, [enhancementSupported, volumePercent]);
 
   useEffect(() => {
     if (audioProcessingEnabled) return;
@@ -677,20 +688,21 @@ export default function MusicPlayer() {
         <input
           type="range"
           min="0"
-          max={audioProcessingEnabled ? 200 : 100}
+          max={enhancementSupported ? 200 : 100}
           step="10"
-          value={Math.min(volumePercent, audioProcessingEnabled ? 200 : 100)}
+          value={Math.min(volumePercent, enhancementSupported ? 200 : 100)}
           aria-label="Volume"
           onChange={(event) => {
             const nextPercent = Number(event.currentTarget.value);
             const boost = Math.max(0, Math.min(1, (nextPercent - 100) / 100));
             setVolumePercent(nextPercent);
             if (audio.current) audio.current.volume = Math.min(nextPercent, 100) / 100;
-            if (nextPercent > 100 && audioProcessingEnabled) enableAudioEnhancement(1 + boost * 9, boost * 18);
+            if (nextPercent > 100 && enhancementSupported && useNativePlayback) switchToEnhancedPlayback();
+            else if (nextPercent > 100 && audioProcessingEnabled) enableAudioEnhancement(1 + boost * 9, boost * 18);
             else if (audioEnhancer.current) enableAudioEnhancement(1, 0);
           }}
         />
-        <output>{Math.min(volumePercent, audioProcessingEnabled ? 200 : 100)}%</output>
+        <output>{Math.min(volumePercent, enhancementSupported ? 200 : 100)}%</output>
       </label>
       <div className="player-progress" aria-label="Track progress">
         <span style={{ width: `${progress * 100}%` }} />
