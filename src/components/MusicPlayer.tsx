@@ -102,6 +102,7 @@ export default function MusicPlayer() {
   const restoredTrack = useRef('');
   const shouldAutoplayOnLoad = useRef(true);
   const playAfterLoad = useRef(false);
+  const nativeFallbackPending = useRef(false);
   const playTrackRef = useRef<() => void>(() => {});
   const pausedByVideoRef = useRef(false);
   const activeTrackRef = useRef<PlayerTrack | undefined>(undefined);
@@ -141,8 +142,9 @@ export default function MusicPlayer() {
     if (element && activeTrack) {
       restoredTrack.current = activeTrack.id;
       restoredTime.current = Number.isFinite(element.currentTime) ? element.currentTime : 0;
-      playAfterLoad.current = !element.paused;
+      playAfterLoad.current = playAfterLoad.current || !element.paused;
     }
+    nativeFallbackPending.current = true;
     setUseNativePlayback(true);
     if (element) element.volume = Math.min(volumePercent, 100) / 100;
     setMessage('Volume boost is unavailable for this track; standard volume is available.');
@@ -326,8 +328,11 @@ export default function MusicPlayer() {
     setProgress(0);
     if (playAfterLoad.current && activeTrack) {
       playAfterLoad.current = false;
+      nativeFallbackPending.current = false;
       window.setTimeout(() => playTrackRef.current(), 0);
-    };
+    } else {
+      nativeFallbackPending.current = false;
+    }
   }, [activeTrack?.id, activeTrack?.src, audioProcessingEnabled]);
 
   useEffect(() => () => {
@@ -382,6 +387,9 @@ export default function MusicPlayer() {
       pausedByVideoRef.current = true;
       setMessage('Music paused while a video has sound. Mute or pause the video to resume music.');
       return;
+    }
+    if (enhance && volumePercent > 100 && enhancementSupported && !useNativePlayback) {
+      playAfterLoad.current = true;
     }
     const enhancementStarted = enhance && volumePercent > 100 && enableAudioEnhancement();
     if (enhance && volumePercent > 100 && !enhancementStarted && enhancementSupported && !useNativePlayback) {
@@ -623,6 +631,7 @@ export default function MusicPlayer() {
         onPlay={() => {
           setIsPlaying(true);
           setNeedsResume(false);
+          if (!nativeFallbackPending.current) playAfterLoad.current = false;
         }}
         onPause={() => setIsPlaying(false)}
         onEnded={() => {
