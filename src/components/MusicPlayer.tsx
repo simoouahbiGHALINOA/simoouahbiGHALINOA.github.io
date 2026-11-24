@@ -213,8 +213,10 @@ export default function MusicPlayer() {
         graph = { context: audioContext, source: mediaSource, gain, bass: lowShelf, clarity, highShelf, compressor, limiter };
         audioEnhancer.current = graph;
         audioContext.addEventListener('statechange', () => {
-          if (audioContext.state === 'suspended' && !element.paused && document.visibilityState === 'visible') {
-            void audioContext.resume().catch(switchToNativePlayback);
+          if (audioContext.state !== 'running' && audioContext.state !== 'closed' && !element.paused && document.visibilityState === 'visible') {
+            void audioContext.resume().then(() => {
+              if (audioContext.state !== 'running') switchToNativePlayback();
+            }).catch(switchToNativePlayback);
           }
         });
       }
