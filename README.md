@@ -159,14 +159,14 @@ The starter kit keeps one runnable example per language in a separate folder. Ea
 <!-- language-metrics:start -->
 | Language | Equal starter share | Measured source share | Files | File types | Starter |
 |----------|---------------------|-----------------------|-------|------------|---------|
-| 🦀 Rust | 12.5% | 1.7% | 1 | `.rs` | [Open](./starters/rust/README.md) |
-| 🐹 Go | 12.5% | 1.4% | 2 | `.go` | [Open](./starters/go/README.md) |
-| 🐍 Python | 12.5% | 3.4% | 4 | `.py` | [Open](./starters/python/README.md) |
-| 🔷 TypeScript | 12.5% | 62.8% | 22 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
-| ⚡ JavaScript | 12.5% | 1.5% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
+| 🦀 Rust | 12.5% | 1.6% | 1 | `.rs` | [Open](./starters/rust/README.md) |
+| 🐹 Go | 12.5% | 1.3% | 2 | `.go` | [Open](./starters/go/README.md) |
+| 🐍 Python | 12.5% | 3.2% | 4 | `.py` | [Open](./starters/python/README.md) |
+| 🔷 TypeScript | 12.5% | 59.7% | 22 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
+| ⚡ JavaScript | 12.5% | 1.4% | 4 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
 | 🗃️ SQL | 12.5% | 1.2% | 5 | `.sql` | [Open](./starters/sql/README.md) |
-| 🎨 CSS | 12.5% | 26.8% | 4 | `.css` | [Open](./starters/css/README.md) |
-| 🌐 HTML | 12.5% | 1.2% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
+| 🎨 CSS | 12.5% | 30.5% | 4 | `.css` | [Open](./starters/css/README.md) |
+| 🌐 HTML | 12.5% | 1.1% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
 <!-- language-metrics:end -->
 
 Language metrics are generated with `npm run generate:language-metrics` before development and production builds. See the live cards on the [home page](https://simoouahbiGHALINOA.github.io/#languages). All first-party starter code uses the repository's MIT license; the SPDX headers and root [LICENSE](./LICENSE) are the source of truth.
