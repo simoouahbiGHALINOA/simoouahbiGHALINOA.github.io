@@ -3,29 +3,23 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 
 <p align="center">
-  <a href="https://github.com/simoouahbiGHALINOA">
-    <img src="assets/GIT.png"
+  <a href="https://docs.github.com/en/site-policy"><img src="assets/GIT.png"
          alt="Git"
          width="116"
-         height="116"
-         style="object-fit:contain; vertical-align:middle; margin:12px 30px;">
-  </a>
+         height="61"
+         style="object-fit:contain; vertical-align:middle; margin:12px 30px;"></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://www.0661619230.com">
-    <img src="assets/LOGONFD.png"
+  <a href="https://www.0661619230.com"><img src="assets/LOGOO.png"
          alt="ECO-SYS"
          width="116"
          height="116"
-         style="object-fit:contain; vertical-align:middle; margin:12px 30px;">
-  </a>
+         style="object-fit:scale-down; vertical-align:middle; margin:0px 0px;"></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://opensource.org/licenses/MIT">
-    <img src="assets/MIT.png"
+  <a href="https://opensource.org/licenses/MIT"><img src="assets/MIT.png"
          alt="MIT License"
          width="116"
-         height="116"
-         style="object-fit:contain; vertical-align:middle; margin:12px 30px;">
-  </a>
+         height="61"
+         style="object-fit:contain; vertical-align:middle; margin:12px 30px;"></a>
 </p>
 
 <p align="center">
@@ -35,7 +29,7 @@
 </p>
 
 <p align="center">
-  <strong>ECO-SYS</strong> · An independent ecosystem by <a href="https://github.com/ADALIGO">ADALIGO</a>
+  <strong>ECO-SYS</strong> · An independent ecosystem by <a href="https://github.com/simoouahbiGHALINOA">simoouahbiGHALINOA</a>
   <br>
   <sub>Open source foundation · Independent development · Community collaboration</sub>
 </p>
@@ -45,7 +39,7 @@
   &nbsp;•&nbsp;
   <a href="https://www.0661619230.com">Official ECO-SYS Website</a>
   &nbsp;•&nbsp;
-  <a href="https://github.com/ADALIGO">ECO-SYS Owner</a>
+  <a href="https://github.com/simoouahbiGHALINOA">ECO-SYS Owner</a>
 </p>
 
 <p align="center">
