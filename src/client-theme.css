@@ -335,9 +335,11 @@
     gap: 0.75rem;
   }
   .page-main > .timeline-video-section .portfolio-video-frame {
-    height: min(28vh, 12rem);
-    max-height: 28vh;
-    aspect-ratio: 16 / 9;
+    width: min(100%, 36vh);
+    height: auto;
+    max-height: 65vh;
+    margin-inline: auto;
+    aspect-ratio: 9 / 16;
   }
   .page-main > .timeline-video-section .portfolio-video-copy { padding: 0.65rem; }
   .page-main > .timeline-video-section .portfolio-video-copy h3 { margin: 0.25rem 0; font-size: 0.95rem; }
