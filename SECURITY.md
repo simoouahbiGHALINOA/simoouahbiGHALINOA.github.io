@@ -1,30 +1,40 @@
 # Security policy
 
-## Scope
+## Scope and ownership
 
-This repository builds a static GitHub Pages site and a separately hosted,
-small API for the anonymous profile-link click counter. It has no account
-system, sign-in flow, or private cloud storage. The API stores only an aggregate
-counter using the configured Prisma database provider.
+This public GitHub Pages site and its source repository are maintained by
+[@simoouahbiGHALINOA](https://github.com/simoouahbiGHALINOA) as part of the
+ECO-SYS ecosystem. The site has no account sign-in or private cloud storage.
+Its small API supports an anonymous aggregate profile-link click counter.
 
-The music player stores visitor-added files in the browser's IndexedDB and saved
-audio URLs and playback position in that browser's local storage. This data is
-not uploaded by this site, is not encrypted by the site, and is not synchronized
-between devices. A saved audio URL is not loaded until the visitor chooses to
-play it, at which point the browser contacts that audio host.
+The site is public: a hidden route, client-side check, or unlisted file is not
+access control. Do not store private visitor data or credentials in the
+frontend or repository. API credentials, if used for deployment, belong only
+in the service environment.
 
-## Reporting a vulnerability
+## Account and access
 
-Please do not publish details of an unpatched security issue in a public issue.
-Use GitHub's private vulnerability reporting for this repository if it is
-available. Otherwise, contact the maintainer through the GitHub profile:
-<https://github.com/simoouahbiGHALINOA>.
+Repository ownership and access are managed by the account linked above.
+Grant repository, deployment, and connected-service access only to people
+approved by the owner, with the least privilege needed. This policy does not
+imply that the website has user accounts or protected profile features.
 
-Include the affected URL or file, the impact, and steps to reproduce. Avoid
-including real credentials, private audio links, or other personal data.
+## Browser storage and media
 
-## Safe use
+The music player stores visitor-added files in IndexedDB and saved audio URLs
+and playback position in the visitor's browser. The site does not upload those
+files, encrypt them, or synchronize them between devices. A saved audio URL is
+contacted only when the visitor chooses to play it.
 
-- Do not put passwords, access tokens, or sensitive signed URLs in a playlist.
-- Clear this site's browser storage to remove locally saved music and settings.
-- Only add or publish audio that you own or are authorized to use.
+Do not put passwords, access tokens, private signed URLs, or sensitive personal
+information in playlists, browser storage, or public content. Only publish
+audio you own or are authorized to use.
+
+## Vulnerability reporting
+
+Do not publish details of an unpatched vulnerability in a public issue or
+discussion. Use this repository's GitHub private vulnerability reporting when
+available. Otherwise, contact
+[@simoouahbiGHALINOA](https://github.com/simoouahbiGHALINOA) privately.
+Include the affected URL or file, impact, and minimal reproduction; remove
+credentials and personal data.
