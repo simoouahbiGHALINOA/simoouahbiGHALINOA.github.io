@@ -135,6 +135,7 @@ export default function MusicPlayer() {
   const [pendingPairing, setPendingPairing] = useState<MusicSyncPairing | null>(null);
   const [syncCodeInput, setSyncCodeInput] = useState('');
   const [syncConnectionStatus, setSyncConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'unconfigured'>('unconfigured');
+  const [syncUploadStatus, setSyncUploadStatus] = useState<'idle' | 'uploading' | 'ready' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [urlTitle, setUrlTitle] = useState('');
   const [urlValue, setUrlValue] = useState('');
@@ -558,7 +559,10 @@ export default function MusicPlayer() {
 
   useEffect(() => {
     const connection = syncConnection.current;
-    if (!connection || syncConnectionStatus !== 'connected') return;
+    if (!connection || syncConnectionStatus !== 'connected') {
+      setSyncUploadStatus('idle');
+      return;
+    }
     const localTracks = [
       ...privateUrls.map((track) => ({
         id: track.id,
@@ -573,9 +577,19 @@ export default function MusicPlayer() {
         file: track.file,
       })),
     ];
-    void connection.syncLibrary(localTracks).then(setSharedTracks).catch((error: unknown) => {
+    const hasImportedFiles = deviceTracks.length > 0;
+    setSyncUploadStatus(hasImportedFiles ? 'uploading' : 'idle');
+    let active = true;
+    void connection.syncLibrary(localTracks).then((syncedTracks) => {
+      if (!active) return;
+      setSharedTracks(syncedTracks);
+      setSyncUploadStatus(hasImportedFiles ? 'ready' : 'idle');
+    }).catch((error: unknown) => {
+      if (!active) return;
+      setSyncUploadStatus(hasImportedFiles ? 'error' : 'idle');
       setMessage(error instanceof Error ? error.message : 'Your saved music could not be shared.');
     });
+    return () => { active = false; };
   }, [deviceTracks, privateUrls, syncConnectionStatus]);
 
   useEffect(() => {
@@ -805,6 +819,8 @@ export default function MusicPlayer() {
           </div>
           <div className="music-sync-settings">
             <h3>Sync music across clients</h3>
+            {syncUploadStatus === 'uploading' && <p className="privacy-note" role="status">Uploading imported audio to the shared room. Keep this site open.</p>}
+            {syncUploadStatus === 'ready' && <p className="privacy-note" role="status">Imported audio is uploaded and ready to play on other connected sites.</p>}
             <p>
               {!isMusicSyncConfigured()
                 ? 'Shared music is not configured on this site.'

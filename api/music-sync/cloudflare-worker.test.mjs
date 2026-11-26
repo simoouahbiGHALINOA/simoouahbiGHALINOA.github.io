@@ -5,7 +5,9 @@ import worker, { MusicRoom } from './cloudflare-worker.mjs';
 
 const origin = 'https://simoouahbi.github.io';
 const config = JSON.parse(readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8'));
-const clientOrigins = config.vars.ALLOWED_ORIGINS.split(',').map((value) => value.trim());
+const configuredOrigins = config.vars.ALLOWED_ORIGINS.split(',').map((value) => value.trim());
+const clientOrigins = configuredOrigins.filter((value) => value.startsWith('https://'));
+const localDevOrigins = configuredOrigins.filter((value) => value.startsWith('http://'));
 const roomId = 'a'.repeat(48);
 const deviceId = 'b'.repeat(24);
 const clientId = 'c'.repeat(32);
@@ -105,6 +107,21 @@ test('all nine configured Pages clients are allowed by the relay', async () => {
     }), env);
     assert.equal(response.status, 204, clientOrigin);
     assert.equal(response.headers.get('Access-Control-Allow-Origin'), clientOrigin);
+  }
+});
+
+test('configured local development clients are allowed by the relay', async () => {
+  const env = createEnvironment();
+  env.ALLOWED_ORIGINS = localDevOrigins.join(',');
+  assert.equal(localDevOrigins.length, 16);
+
+  for (const localOrigin of localDevOrigins) {
+    const response = await worker.fetch(new Request('https://relay.example/v1/library', {
+      method: 'OPTIONS',
+      headers: { Origin: localOrigin },
+    }), env);
+    assert.equal(response.status, 204, localOrigin);
+    assert.equal(response.headers.get('Access-Control-Allow-Origin'), localOrigin);
   }
 });
 

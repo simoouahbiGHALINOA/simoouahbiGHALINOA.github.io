@@ -21,6 +21,6 @@
     }
   ],
   "vars": {
-    "ALLOWED_ORIGINS": "https://adaligo.github.io,https://adamghaliouahbi.github.io,https://khadijachahmoud.github.io,https://khadijadaughter.github.io,https://khadijason.github.io,https://marociasong.github.io,https://noaouahbi.github.io,https://simoouahbi.github.io,https://simoouahbighalinoa.github.io"
+    "ALLOWED_ORIGINS": "https://adaligo.github.io,https://adamghaliouahbi.github.io,https://khadijachahmoud.github.io,https://khadijadaughter.github.io,https://khadijason.github.io,https://marociasong.github.io,https://noaouahbi.github.io,https://simoouahbi.github.io,https://simoouahbighalinoa.github.io,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5190,http://127.0.0.1:5190,http://localhost:5191,http://127.0.0.1:5191,http://localhost:5192,http://127.0.0.1:5192,http://localhost:5193,http://127.0.0.1:5193,http://localhost:5194,http://127.0.0.1:5194,http://localhost:5195,http://127.0.0.1:5195,http://localhost:5196,http://127.0.0.1:5196"
   }
 }

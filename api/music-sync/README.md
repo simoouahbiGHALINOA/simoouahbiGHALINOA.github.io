@@ -33,8 +33,9 @@ resets or storage is cleared, rather than automatically using paid R2. See
 and [Durable Objects limits](https://developers.cloudflare.com/durable-objects/platform/limits/).
 
 The configured `ALLOWED_ORIGINS` contains the exact GitHub Pages origins for
-the current music clients. Add any additional client origin there before
-deploying. Do not put database credentials in `wrangler.jsonc`.
+the current music clients, plus the localhost origins used by the local Vite
+development servers. Add any additional client origin there before deploying.
+Do not put database credentials in `wrangler.jsonc`.
 
 ## GitHub Pages clients
 
