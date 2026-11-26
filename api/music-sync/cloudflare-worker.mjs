@@ -4,6 +4,7 @@ const CLIENT_ID_PATTERN = /^[a-f0-9]{32}$/i;
 const TRACK_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
 const MAX_JSON_BYTES = 64 * 1024;
 const MAX_AUDIO_BYTES = 100 * 1024 * 1024;
+const AUDIO_CHUNK_BYTES = 4 * 1024 * 1024;
 const LEASE_MS = 10_000;
 const DEFAULT_STATE = { volumePercent: 100, muted: false, playing: false };
 const encoder = new TextEncoder();
@@ -113,19 +114,15 @@ function parseByteRange(value, size) {
   return { start, end, length: end - start + 1 };
 }
 
-function fixedLengthStream(length) {
-  if (typeof FixedLengthStream === 'function') return new FixedLengthStream(length);
-  let total = 0;
-  return new TransformStream({
-    transform(chunk, controller) {
-      total += chunk.byteLength;
-      if (total > length) throw new RangeError('The audio upload does not match its declared size.');
-      controller.enqueue(chunk);
-    },
-    flush() {
-      if (total !== length) throw new RangeError('The audio upload does not match its declared size.');
-    },
-  });
+function audioChunkKey(trackId, index) {
+  return `audio:${trackId}:${index}`;
+}
+
+function storedAudioBytes(value) {
+  if (value instanceof Uint8Array) return value;
+  if (value instanceof ArrayBuffer) return new Uint8Array(value);
+  if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+  throw new TypeError('The shared audio chunk has an unsupported storage format.');
 }
 
 export default {
@@ -404,14 +401,14 @@ export class MusicRoom {
       const index = tracks.findIndex((track) => track.id === incoming.id);
       const existing = index === -1 ? null : tracks[index];
       const fingerprintChanged = existing?.fileFingerprint !== incoming.fileFingerprint;
-      if (incoming.kind === 'file') {
-        const stored = fingerprintChanged ? null : await this.env.MUSIC_FILES.head(`${pairing.roomId}/${incoming.id}`);
-        if (!stored) missingFiles.push(incoming.id);
-      }
       if (existing?.kind === 'file' &&
           (incoming.kind !== 'file' || fingerprintChanged)) {
-        await this.env.MUSIC_FILES.delete(`${pairing.roomId}/${incoming.id}`);
+        await this.deleteAudioFile(existing);
       }
+      const fileStored = incoming.kind === 'file' &&
+        !fingerprintChanged &&
+        existing?.fileStored === true;
+      if (incoming.kind === 'file' && !fileStored) missingFiles.push(incoming.id);
       const next = {
         id: incoming.id,
         title: incoming.title,
@@ -419,7 +416,12 @@ export class MusicRoom {
         kind: incoming.kind,
         ...(incoming.kind === 'url' ? { audioUrl: incoming.audioUrl } : {
           fileFingerprint: incoming.fileFingerprint ?? '',
-          ...(fingerprintChanged ? {} : { contentType: existing?.contentType }),
+          fileStored,
+          ...(fileStored ? {
+            contentType: existing.contentType,
+            fileSize: existing.fileSize,
+            fileChunkCount: existing.fileChunkCount,
+          } : {}),
         }),
       };
       if (index === -1) tracks.push(next);
@@ -451,51 +453,136 @@ export class MusicRoom {
     if (!contentType.startsWith('audio/') && contentType !== 'application/octet-stream') {
       return jsonResponse(400, { error: 'The uploaded file must have an audio content type.' });
     }
-    const body = fixedLengthStream(declaredSize);
-    await Promise.all([
-      this.env.MUSIC_FILES.put(`${pairing.roomId}/${trackId}`, body.readable, {
-        httpMetadata: { contentType },
-      }),
-      request.body.pipeTo(body.writable),
-    ]);
-    track.contentType = contentType;
-    await this.ctx.storage.put('tracks', tracks);
-    this.broadcast('library', {});
-    return new Response(null, { status: 204 });
+    const chunkCount = Math.ceil(declaredSize / AUDIO_CHUNK_BYTES);
+    let writtenChunks = 0;
+    let totalBytes = 0;
+    let pending = new Uint8Array(AUDIO_CHUNK_BYTES);
+    let pendingLength = 0;
+    const reader = request.body.getReader();
+
+    try {
+      await this.deleteAudioFile(track);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (totalBytes + value.byteLength > declaredSize) {
+          throw new RangeError('The audio upload is larger than its declared size.');
+        }
+        totalBytes += value.byteLength;
+        let offset = 0;
+        while (offset < value.byteLength) {
+          const bytesToCopy = Math.min(AUDIO_CHUNK_BYTES - pendingLength, value.byteLength - offset);
+          pending.set(value.subarray(offset, offset + bytesToCopy), pendingLength);
+          pendingLength += bytesToCopy;
+          offset += bytesToCopy;
+          if (pendingLength === AUDIO_CHUNK_BYTES) {
+            await this.ctx.storage.put(audioChunkKey(trackId, writtenChunks), pending);
+            writtenChunks += 1;
+            pending = new Uint8Array(AUDIO_CHUNK_BYTES);
+            pendingLength = 0;
+          }
+        }
+      }
+      if (totalBytes !== declaredSize) {
+        throw new RangeError('The audio upload is smaller than its declared size.');
+      }
+      if (pendingLength > 0) {
+        await this.ctx.storage.put(audioChunkKey(trackId, writtenChunks), pending.slice(0, pendingLength));
+        writtenChunks += 1;
+      }
+      track.fileStored = true;
+      track.fileSize = declaredSize;
+      track.fileChunkCount = writtenChunks;
+      track.contentType = contentType;
+      await this.ctx.storage.put('tracks', tracks);
+      this.broadcast('library', {});
+      return new Response(null, { status: 204 });
+    } catch (error) {
+      try {
+        await this.deleteAudioChunks(trackId, chunkCount);
+        track.fileStored = false;
+        delete track.fileSize;
+        delete track.fileChunkCount;
+        delete track.contentType;
+        await this.ctx.storage.put('tracks', tracks);
+      } catch (cleanupError) {
+        console.error('The partial audio upload could not be cleared.', cleanupError);
+      }
+      const message = error instanceof Error ? error.message : 'The audio upload could not be stored.';
+      if (!(error instanceof RangeError)) console.error('The audio upload failed.', error);
+      return jsonResponse(error instanceof RangeError ? 400 : 507, {
+        error: `${message} Any partial upload was cleared when possible.`,
+      });
+    }
   }
 
   async readAudio(request, pairing, trackId) {
     const tracks = await this.getTracks();
-    const track = tracks.find((entry) => entry.id === trackId && entry.kind === 'file');
-    if (!track) return jsonResponse(404, { error: 'The shared track was not found.' });
-    const key = `${pairing.roomId}/${trackId}`;
-    const metadata = await this.env.MUSIC_FILES.head(key);
-    if (!metadata) return jsonResponse(404, { error: 'The shared audio file was not found.' });
+    const track = tracks.find((entry) => entry.id === trackId && entry.kind === 'file' && entry.fileStored === true);
+    if (!track || !Number.isSafeInteger(track.fileSize) || !Number.isSafeInteger(track.fileChunkCount)) {
+      return jsonResponse(404, { error: 'The shared audio file was not found.' });
+    }
 
-    const range = parseByteRange(request.headers.get('Range'), metadata.size);
+    const range = parseByteRange(request.headers.get('Range'), track.fileSize);
     if (range?.invalid) {
       return new Response(null, {
         status: 416,
-        headers: { 'Content-Range': `bytes */${metadata.size}` },
+        headers: { 'Content-Range': `bytes */${track.fileSize}` },
       });
     }
-    const options = range ? { range: { offset: range.start, length: range.length } } : undefined;
-    const object = await this.env.MUSIC_FILES.get(key, options);
-    if (!object) return jsonResponse(404, { error: 'The shared audio file was not found.' });
+    const start = range?.start ?? 0;
+    const end = range?.end ?? track.fileSize - 1;
+    const firstChunk = Math.floor(start / AUDIO_CHUNK_BYTES);
+    const lastChunk = Math.floor(end / AUDIO_CHUNK_BYTES);
+    let nextChunk = firstChunk;
+    const body = new ReadableStream({
+      pull: async (controller) => {
+        if (nextChunk > lastChunk) {
+          controller.close();
+          return;
+        }
+        const stored = await this.ctx.storage.get(audioChunkKey(trackId, nextChunk));
+        if (!stored) {
+          controller.error(new Error('A shared audio chunk is missing.'));
+          return;
+        }
+        const bytes = storedAudioBytes(stored);
+        const chunkStart = nextChunk === firstChunk ? start % AUDIO_CHUNK_BYTES : 0;
+        const chunkEnd = nextChunk === lastChunk
+          ? end % AUDIO_CHUNK_BYTES + 1
+          : bytes.byteLength;
+        controller.enqueue(bytes.slice(chunkStart, chunkEnd));
+        nextChunk += 1;
+      },
+    });
     const headers = new Headers({
       'Accept-Ranges': 'bytes',
       'Cache-Control': 'private, no-store',
-      'Content-Type': object.httpMetadata?.contentType ?? track.contentType ?? 'application/octet-stream',
+      'Content-Type': track.contentType ?? 'application/octet-stream',
       'X-Content-Type-Options': 'nosniff',
     });
-    if (object.etag) headers.set('ETag', object.httpEtag ?? `"${object.etag}"`);
     if (range) {
       headers.set('Content-Length', String(range.length));
-      headers.set('Content-Range', `bytes ${range.start}-${range.end}/${metadata.size}`);
-      return new Response(object.body, { status: 206, headers });
+      headers.set('Content-Range', `bytes ${range.start}-${range.end}/${track.fileSize}`);
+      return new Response(body, { status: 206, headers });
     }
-    headers.set('Content-Length', String(metadata.size));
-    return new Response(object.body, { status: 200, headers });
+    headers.set('Content-Length', String(track.fileSize));
+    return new Response(body, { status: 200, headers });
+  }
+
+  async deleteAudioChunks(trackId, chunkCount) {
+    const keys = Array.from({ length: chunkCount }, (_, index) => audioChunkKey(trackId, index));
+    await Promise.all(keys.map((key) => this.ctx.storage.delete(key)));
+  }
+
+  async deleteAudioFile(track) {
+    if (Number.isSafeInteger(track.fileChunkCount) && track.fileChunkCount > 0) {
+      await this.deleteAudioChunks(track.id, track.fileChunkCount);
+    }
+    track.fileStored = false;
+    delete track.fileSize;
+    delete track.fileChunkCount;
+    delete track.contentType;
   }
 
   async deleteTrack(pairing, trackId) {
@@ -503,9 +590,7 @@ export class MusicRoom {
     const index = tracks.findIndex((track) => track.id === trackId);
     if (index === -1) return jsonResponse(404, { error: 'The shared track was not found.' });
     const [track] = tracks.splice(index, 1);
-    if (track.kind === 'file') {
-      await this.env.MUSIC_FILES.delete(`${pairing.roomId}/${trackId}`);
-    }
+    if (track.kind === 'file') await this.deleteAudioFile(track);
     await this.ctx.storage.put('tracks', tracks);
     this.broadcast('library', {});
     return new Response(null, { status: 204 });

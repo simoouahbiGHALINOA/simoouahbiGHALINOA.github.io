@@ -6,20 +6,29 @@ Pages hosts the static site; the music relay runs separately as a Cloudflare Wor
 `https://simoouahbighalinoa-github-io.simoouahbi-483.workers.dev`
 
 The Worker serves the `/v1/*` relay API. A SQLite-backed Durable Object stores
-room metadata and coordinates live updates. R2 stores uploaded audio files.
-Music sharing does **not** use Prisma or MongoDB.
+room metadata, live updates, and uploaded audio in 4 MiB chunks. It does **not**
+use R2, Prisma, or MongoDB.
 
-## One-time Cloudflare setup
+## Free Cloudflare setup
 
-1. In Cloudflare, create an R2 bucket named `simoouahbi-music-sync` (or run
-   `npx wrangler r2 bucket create simoouahbi-music-sync` after logging in).
-2. From the repository root, run `npx wrangler login` once, then
-   `npm run deploy:music`. Wrangler deploys the relay from `wrangler.jsonc`,
-   provisions the `MUSIC_ROOMS` Durable Object binding, and connects the
-   `MUSIC_FILES` R2 bucket. GitHub Pages continues to deploy the frontend.
-3. Check
+Do **not** activate R2 or authorize its overage billing for this setup. From
+the repository root, run `npx wrangler login` once, then `npm run deploy:music`.
+Wrangler provisions the SQLite-backed `MUSIC_ROOMS` Durable Object. There is
+no R2 bucket or R2 billing binding. GitHub Pages continues to deploy the
+frontend.
+
+Check
    `https://simoouahbighalinoa-github-io.simoouahbi-483.workers.dev/healthz`.
    The relay is ready when this returns HTTP 200 with `{"status":"ok"}`.
+
+On Cloudflare's Workers Free plan, Durable Objects have free daily operation
+limits and 5 GB of SQLite storage per account. Each audio file is limited to
+100 MB; total stored audio shares that 5 GB account allowance. Stay on the
+Workers Free plan: when free limits are reached, requests can fail until usage
+resets or storage is cleared, rather than automatically using paid R2. See
+[Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/),
+[Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/),
+and [Durable Objects limits](https://developers.cloudflare.com/durable-objects/platform/limits/).
 
 The configured `ALLOWED_ORIGINS` contains the exact GitHub Pages origins for
 the current music clients. Add any additional client origin there before
@@ -44,15 +53,6 @@ appear in the shared room. Public playlist tracks are not copied.
 
 Pairing codes are bearer credentials: anyone with a code can listen to or
 remove tracks in its room. Share them only with trusted people.
-
-## Free-plan notes
-
-Workers, SQLite-backed Durable Objects, and standard R2 storage have free
-allocations, not unlimited usage. Stay within Cloudflare's current limits;
-usage over included R2 storage/operations may incur charges. Individual audio
-uploads are limited to 100 MB. See the [Workers](https://developers.cloudflare.com/workers/platform/pricing/),
-[Durable Objects](https://developers.cloudflare.com/durable-objects/platform/pricing/),
-and [R2](https://developers.cloudflare.com/r2/pricing/) pricing pages.
 
 ## MongoDB and the Prisma API
 

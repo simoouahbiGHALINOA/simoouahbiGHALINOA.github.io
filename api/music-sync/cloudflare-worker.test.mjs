@@ -24,51 +24,11 @@ class MemoryStorage {
   }
 }
 
-class MemoryFiles {
-  values = new Map();
-
-  async head(key) {
-    const value = this.values.get(key);
-    return value ? { size: value.bytes.byteLength, etag: 'etag' } : null;
-  }
-
-  async put(key, body, options = {}) {
-    const bytes = await new Response(body).arrayBuffer();
-    this.values.set(key, {
-      bytes,
-      contentType: options.httpMetadata?.contentType,
-    });
-    return { size: bytes.byteLength };
-  }
-
-  async get(key, options) {
-    const value = this.values.get(key);
-    if (!value) return null;
-    const fullSize = value.bytes.byteLength;
-    const offset = options?.range?.offset ?? 0;
-    const length = options?.range?.length ?? fullSize;
-    const bytes = value.bytes.slice(offset, offset + length);
-    return {
-      body: new Response(bytes).body,
-      size: bytes.byteLength,
-      etag: 'etag',
-      httpEtag: '"etag"',
-      httpMetadata: { contentType: value.contentType },
-    };
-  }
-
-  async delete(key) {
-    this.values.delete(key);
-  }
-}
-
 function createEnvironment() {
-  const files = new MemoryFiles();
   const rooms = new Map();
   const env = {
     ALLOWED_ORIGINS: origin,
     ASSETS: { fetch: async () => new Response('site asset') },
-    MUSIC_FILES: files,
     MUSIC_ROOMS: {
       idFromName: (name) => name,
       get: (name) => {
@@ -166,6 +126,43 @@ test('paired library uploads and serves an audio file with byte-range support', 
   assert.equal(deleteResponse.status, 204);
   const missingAudio = await worker.fetch(apiRequest(fileTrack.audioUrl), env);
   assert.equal(missingAudio.status, 404);
+});
+
+test('large audio files are chunked and byte ranges can cross chunk boundaries', async () => {
+  const env = createEnvironment();
+  const chunkSize = 4 * 1024 * 1024;
+  const bytes = new Uint8Array(chunkSize + 5);
+  bytes.set([65, 66, 67, 68, 69], chunkSize - 2);
+  const manifestResponse = await worker.fetch(apiRequest(`/v1/library?${pairedQuery()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tracks: [{
+        id: 'chunked-song',
+        title: 'Chunked',
+        artist: 'Artist',
+        kind: 'file',
+        fileFingerprint: `${bytes.byteLength}:audio/mpeg:Chunked:1`,
+      }],
+    }),
+  }), env);
+  assert.deepEqual(await manifestResponse.json(), { missingFiles: ['chunked-song'] });
+
+  const uploadResponse = await worker.fetch(apiRequest(`/v1/library/chunked-song/file?${pairedQuery()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'audio/mpeg' },
+    body: new Blob([bytes]),
+  }), env);
+  assert.equal(uploadResponse.status, 204);
+
+  const libraryResponse = await worker.fetch(apiRequest(`/v1/library?${pairedQuery()}`), env);
+  const library = await libraryResponse.json();
+  const fileTrack = library.tracks.find((track) => track.id === 'chunked-song');
+  const rangeResponse = await worker.fetch(apiRequest(fileTrack.audioUrl, {
+    headers: { Range: `bytes=${chunkSize - 2}-${chunkSize + 2}` },
+  }), env);
+  assert.equal(rangeResponse.status, 206);
+  assert.equal(await rangeResponse.text(), 'ABCDE');
 });
 
 test('playback lease and command state are persisted in the room', async () => {
