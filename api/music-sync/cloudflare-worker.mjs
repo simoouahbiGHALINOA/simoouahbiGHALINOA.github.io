@@ -147,30 +147,33 @@ export default {
 
     const origin = request.headers.get('Origin');
     const origins = allowedOrigins(env);
-    if (!origin || !origins.has(origin.toLowerCase())) {
+    const isAudioRead = request.method === 'GET' &&
+      /^\/v1\/library\/audio\/[a-zA-Z0-9_-]{1,128}$/.test(url.pathname);
+    if ((!origin && !isAudioRead) || (origin && !origins.has(origin.toLowerCase()))) {
       return jsonResponse(403, { error: 'A configured client origin is required.' });
     }
+    const responseWithCors = (response) => origin ? withCors(response, origin) : response;
     if (request.method === 'OPTIONS') {
-      return withCors(new Response(null, { status: 204 }), origin);
+      return responseWithCors(new Response(null, { status: 204 }));
     }
 
     let roomId;
     try {
       roomId = await getRoomIdFromRequest(request);
     } catch {
-      return withCors(jsonResponse(400, { error: 'Request body must be valid JSON.' }), origin);
+      return responseWithCors(jsonResponse(400, { error: 'Request body must be valid JSON.' }));
     }
     if (!isHex(roomId, ROOM_ID_PATTERN)) {
-      return withCors(jsonResponse(400, { error: 'A valid room code is required.' }), origin);
+      return responseWithCors(jsonResponse(400, { error: 'A valid room code is required.' }));
     }
 
     try {
       const id = env.MUSIC_ROOMS.idFromName(roomId.toLowerCase());
       const room = env.MUSIC_ROOMS.get(id);
-      return withCors(await room.fetch(request), origin);
+      return responseWithCors(await room.fetch(request));
     } catch (error) {
       console.error('Music relay request failed.', error);
-      return withCors(jsonResponse(503, { error: 'The music sync service is temporarily unavailable.' }), origin);
+      return responseWithCors(jsonResponse(503, { error: 'The music sync service is temporarily unavailable.' }));
     }
   },
 };

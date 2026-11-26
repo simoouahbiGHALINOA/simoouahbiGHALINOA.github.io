@@ -460,11 +460,18 @@ export default function MusicPlayer() {
       setMessage('');
     } catch (error) {
       const autoplayBlocked = error instanceof Error && error.name === 'NotAllowedError';
+      const sharedPlaybackError = element.error?.code === 2
+        ? 'The browser could not download the shared audio (media error 2).'
+        : element.error?.code === 3
+          ? 'The shared audio downloaded but could not be decoded (media error 3). Try a standard MP3 or WAV.'
+          : element.error?.code === 4
+            ? 'The shared file is missing or its format is unsupported (media error 4).'
+            : 'This shared audio could not be loaded. Confirm the original site finished uploading it.';
       setNeedsResume(autoplayBlocked);
       setMessage(autoplayBlocked
         ? 'Autoplay was blocked. Click or tap anywhere to start music.'
         : activeTrack.kind === 'shared'
-          ? 'This shared audio could not be loaded. Confirm the original site finished uploading it, and that your browser supports its format.'
+          ? sharedPlaybackError
           : 'This track could not be played. Check that the audio file or URL is available.');
     }
   }, [activeTrack, enableAudioEnhancement, enhancementSupported, useNativePlayback, volumePercent]);
