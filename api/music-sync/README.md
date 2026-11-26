@@ -20,6 +20,8 @@ frontend.
 Check
    `https://simoouahbighalinoa-github-io.simoouahbi-483.workers.dev/healthz`.
    The relay is ready when this returns HTTP 200 with `{"status":"ok"}`.
+The Worker root returns a small JSON status message; it is an API endpoint, not
+the music website. Open the GitHub Pages site to use the player.
 
 On Cloudflare's Workers Free plan, Durable Objects have free daily operation
 limits and 5 GB of SQLite storage per account. Each audio file is limited to

@@ -132,6 +132,7 @@ export default function MusicPlayer() {
   const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [syncPairing, setSyncPairing] = useState<MusicSyncPairing | null>(readMusicSyncCode);
+  const [pendingPairing, setPendingPairing] = useState<MusicSyncPairing | null>(null);
   const [syncCodeInput, setSyncCodeInput] = useState('');
   const [syncConnectionStatus, setSyncConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'unconfigured'>('unconfigured');
   const [message, setMessage] = useState('');
@@ -472,11 +473,17 @@ export default function MusicPlayer() {
       setMessage('That pairing code is not valid. Copy the full code from the other site.');
       return;
     }
-    if (!window.confirm('Pairing shares your saved audio links and uploads this browser’s imported audio files to the shared music room. Anyone with the code can listen to or remove shared tracks. Continue?')) return;
+    setPendingPairing(pairing);
+  };
+
+  const confirmSyncPairing = () => {
+    const pairing = pendingPairing;
+    if (!pairing) return;
     try {
       saveMusicSyncCode(pairing);
       setSyncPairing(pairing);
       setSyncCodeInput('');
+      setPendingPairing(null);
       setMessage('Pairing saved. Connecting to the shared music room…');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'This browser could not save the pairing code.');
@@ -803,7 +810,17 @@ export default function MusicPlayer() {
                   ? `Private pairing · ${syncConnectionStatus}`
                   : 'Create a code here, or paste a code from another site to join its music room.'}
             </p>
-            {syncPairing ? (
+            {pendingPairing ? (
+              <div className="add-music" role="group" aria-labelledby="sync-confirm-title">
+                <h4 id="sync-confirm-title">Confirm pairing</h4>
+                <p className="privacy-note">This shares saved audio links and uploads this browser’s imported audio to the room. Anyone with this code can listen to or remove shared tracks.</p>
+                <input className="sync-code-input" aria-label="Pairing code awaiting confirmation" readOnly value={`${pendingPairing.roomId}.${pendingPairing.deviceId}`} />
+                <div className="sync-actions">
+                  <button type="button" className="secondary-button" onClick={() => setPendingPairing(null)}>Cancel</button>
+                  <button type="button" className="secondary-button" onClick={confirmSyncPairing}>Confirm &amp; connect</button>
+                </div>
+              </div>
+            ) : syncPairing ? (
               <>
                 <label className="visually-hidden" htmlFor="music-sync-code">Private pairing code</label>
                 <input id="music-sync-code" className="sync-code-input" readOnly value={`${syncPairing.roomId}.${syncPairing.deviceId}`} />

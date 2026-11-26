@@ -128,6 +128,14 @@ function storedAudioBytes(value) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/') {
+      return jsonResponse(200, {
+        service: 'ECO-SYS music sync',
+        status: 'ok',
+        health: '/healthz',
+        frontend: 'https://simoouahbighalinoa.github.io',
+      });
+    }
     if (url.pathname === '/healthz') {
       return jsonResponse(200, { status: 'ok' });
     }

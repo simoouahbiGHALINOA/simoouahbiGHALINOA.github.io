@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import worker, { MusicRoom } from './cloudflare-worker.mjs';
 
 const origin = 'https://simoouahbi.github.io';
+const config = JSON.parse(readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8'));
+const clientOrigins = config.vars.ALLOWED_ORIGINS.split(',').map((value) => value.trim());
 const roomId = 'a'.repeat(48);
 const deviceId = 'b'.repeat(24);
 const clientId = 'c'.repeat(32);
@@ -57,6 +60,15 @@ function pairedQuery() {
 
 test('health endpoint returns 200 and static assets fall through when bound', async () => {
   const env = createEnvironment();
+  const root = await worker.fetch(new Request('https://relay.example/'), env);
+  assert.equal(root.status, 200);
+  assert.deepEqual(await root.json(), {
+    service: 'ECO-SYS music sync',
+    status: 'ok',
+    health: '/healthz',
+    frontend: 'https://simoouahbighalinoa.github.io',
+  });
+
   const health = await worker.fetch(new Request('https://relay.example/healthz'), env);
   assert.equal(health.status, 200);
   assert.deepEqual(await health.json(), { status: 'ok' });
@@ -79,6 +91,21 @@ test('relay rejects unconfigured origins and answers preflight for allowed origi
   const preflight = await worker.fetch(apiRequest('/v1/library', { method: 'OPTIONS' }), env);
   assert.equal(preflight.status, 204);
   assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), origin);
+});
+
+test('all nine configured Pages clients are allowed by the relay', async () => {
+  const env = createEnvironment();
+  env.ALLOWED_ORIGINS = clientOrigins.join(',');
+  assert.equal(clientOrigins.length, 9);
+
+  for (const clientOrigin of clientOrigins) {
+    const response = await worker.fetch(new Request('https://relay.example/v1/library', {
+      method: 'OPTIONS',
+      headers: { Origin: clientOrigin },
+    }), env);
+    assert.equal(response.status, 204, clientOrigin);
+    assert.equal(response.headers.get('Access-Control-Allow-Origin'), clientOrigin);
+  }
 });
 
 test('paired library uploads and serves an audio file with byte-range support', async () => {
