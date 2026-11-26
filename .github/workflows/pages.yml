@@ -30,6 +30,7 @@ jobs:
       - name: Build site
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_MUSIC_SYNC_URL: ${{ vars.VITE_MUSIC_SYNC_URL }}
         run: npm run build
       - name: Configure Pages
         uses: actions/configure-pages@v5

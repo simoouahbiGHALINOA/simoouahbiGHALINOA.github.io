@@ -13,6 +13,7 @@
     "api:dev": "npm --prefix api run dev",
     "api:build": "npm --prefix api run build",
     "api:start": "npm --prefix api start",
+    "deploy:music": "npx --yes wrangler@4.168.0 deploy",
     "generate:language-metrics": "node scripts/generate-language-metrics.mjs"
   },
   "dependencies": {
