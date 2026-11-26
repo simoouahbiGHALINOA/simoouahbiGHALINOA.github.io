@@ -384,6 +384,7 @@ export class MusicRoom {
 
   async readLibrary(pairing) {
     const tracks = (await this.getTracks())
+      .filter((track) => track.kind !== 'file' || track.fileStored === true)
       .sort((left, right) => left.title.localeCompare(right.title))
       .map((track) => ({
         id: track.id,

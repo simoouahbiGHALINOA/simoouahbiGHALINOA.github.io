@@ -1,6 +1,6 @@
 {
   "method": "first-party source file bytes",
-  "totalSourceBytes": 246019,
+  "totalSourceBytes": 247353,
   "languages": [
     {
       "name": "Rust",
@@ -34,8 +34,8 @@
       "extension": ".ts, .tsx",
       "starterDirectory": "starters/typescript",
       "fileCount": 23,
-      "sourceBytes": 134093,
-      "actualPercent": 54.5,
+      "sourceBytes": 134282,
+      "actualPercent": 54.3,
       "equalPercent": 12.5
     },
     {
@@ -43,8 +43,8 @@
       "extension": ".js, .mjs, .cjs",
       "starterDirectory": "starters/javascript",
       "fileCount": 6,
-      "sourceBytes": 34490,
-      "actualPercent": 14,
+      "sourceBytes": 35635,
+      "actualPercent": 14.4,
       "equalPercent": 12.5
     },
     {
@@ -62,7 +62,7 @@
       "starterDirectory": "starters/css",
       "fileCount": 4,
       "sourceBytes": 61206,
-      "actualPercent": 24.9,
+      "actualPercent": 24.7,
       "equalPercent": 12.5
     },
     {

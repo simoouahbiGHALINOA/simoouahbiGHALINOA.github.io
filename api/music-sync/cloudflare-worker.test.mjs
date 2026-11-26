@@ -123,6 +123,10 @@ test('paired library uploads and serves an audio file with byte-range support', 
   assert.equal(manifestResponse.status, 200);
   assert.deepEqual(await manifestResponse.json(), { missingFiles: ['song-1'] });
 
+  const pendingLibraryResponse = await worker.fetch(apiRequest(`/v1/library?${pairedQuery()}`), env);
+  const pendingLibrary = await pendingLibraryResponse.json();
+  assert.deepEqual(pendingLibrary.tracks.map((track) => track.id), ['url-1']);
+
   const uploadResponse = await worker.fetch(apiRequest(`/v1/library/song-1/file?${pairedQuery()}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'audio/mpeg' },

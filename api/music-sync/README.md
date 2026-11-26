@@ -38,8 +38,9 @@ deploying. Do not put database credentials in `wrangler.jsonc`.
 
 ## GitHub Pages clients
 
-For each other GitHub Pages repository with the music player, add this public
-Actions repository variable:
+Each music client defaults to this Worker URL. To use a different relay, set
+this public Actions repository variable and rerun that repository's Pages
+deployment:
 
 `VITE_MUSIC_SYNC_URL=https://simoouahbighalinoa-github-io.simoouahbi-483.workers.dev`
 
@@ -48,10 +49,11 @@ Then rerun its Pages deployment. The main site defaults to this Worker URL.
 ## Pairing
 
 On the source site, open **Music library** and select **Create a private code**.
-On the other site, paste that code into the field under **Sync music across
-clients**, select **Connect this site**, and approve the prompt. Wait for
-**Private pairing · connected**. Saved audio URLs and imported audio files then
-appear in the shared room. Public playlist tracks are not copied.
+On the other site, paste that code into **Sync music across clients**, select
+**Connect this site**, then confirm in the in-page prompt. Wait for
+**Private pairing · connected**. Saved audio URLs and imported audio files are
+shared; imported files appear on other sites only after their upload completes.
+Each file can be up to 100 MB. Public playlist tracks are not copied.
 
 Pairing codes are bearer credentials: anyone with a code can listen to or
 remove tracks in its room. Share them only with trusted people.
