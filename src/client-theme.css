@@ -1,4 +1,5 @@
 :root {
+  --border: var(--accent-border);
   --glass-border: var(--border);
   --scrollbar-thumb: rgba(255, 255, 255, 0.3);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.5);
@@ -57,6 +58,7 @@
 }
 
 :root[data-theme='light'] {
+  --border: var(--accent-border);
   --scrollbar-thumb: rgba(21, 25, 38, 0.3);
   --scrollbar-thumb-hover: rgba(21, 25, 38, 0.5);
 }
@@ -122,8 +124,6 @@
 .timeline-video-card { border: 1px solid var(--accent-border); border-radius: 1.25rem; background: var(--bg-card); backdrop-filter: blur(8px); }
 .listen-card { border-color: var(--accent-border); background: linear-gradient(130deg, var(--accent-soft), var(--bg-card) 58%); backdrop-filter: blur(8px); }
 .listen-card code { color: var(--accent-strong); }
-.hero-orbit, .hero-orbit::before, .hero-orbit::after { border-color: var(--accent); opacity: 0.22; }
-.hero-orbit span { background: var(--accent); box-shadow: 0 0 16px var(--accent); }
 .portfolio-video-placeholder { background: radial-gradient(ellipse at 50% 35%, var(--accent-soft), transparent 62%), #090911; }
 .language-icon { border-color: var(--accent-border); }
 .language-bar span { background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
@@ -135,6 +135,28 @@
 .eco-header { backdrop-filter: blur(8px); }
 .brand { padding: 0.2rem 0.35rem; border: 1px solid var(--accent-border); border-radius: 0.65rem; }
 .brand-label { padding: 0.2rem 0.4rem; border-radius: 0.35rem; background: var(--accent-soft); letter-spacing: 0.02em; }
+.brand, .brand-mark, .hero-content, .section-heading, .feature-card, .feature-icon, .secondary-button, .listen-card, #ecosystem-source > div, #contact-section, .timeline-video-card, .timeline-video-card video, .timeline-figure, .language-card, .language-icon, .footer-github-link, .record-icon, .music-tabs, .player-message, .track-art, .sync-code-input, .pairing-code-display, .url-form input, .url-entry .icon-button, .portfolio-video-card, .portfolio-video-controls button {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 2px var(--accent-strong), 0 0 8px var(--accent-glow), inset 0 0 3px var(--accent-soft);
+}
+.primary-button {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 2px var(--accent-strong), 0 0 8px var(--accent-glow), 0 8px 26px var(--accent-glow);
+}
+.music-tabs button[aria-pressed='true'] { box-shadow: 0 0 2px var(--accent-strong), 0 0 8px var(--accent-glow), inset 0 0 3px var(--accent-soft); }
+.hero-avatar { border-color: var(--accent-border); filter: drop-shadow(0 0 6px var(--accent-glow)); }
+.playlist-popover { border-color: var(--accent-border); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+.gradient-text {
+  display: inline-block;
+  color: var(--accent-strong) !important;
+  background: none;
+  -webkit-text-fill-color: var(--accent-strong);
+  -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.78), 0 2px 0 var(--accent), 0 3px 0 rgba(0, 0, 0, 0.42), 0 0 2px #fff, 0 0 8px var(--accent-strong), 0 0 18px var(--accent), 0 0 32px var(--accent-glow);
+  transform: perspective(550px) rotateX(4deg);
+  transform-origin: center;
+}
 .left-sidebar, .right-sidebar { backdrop-filter: blur(8px); transition: none; }
 .page-main { scrollbar-gutter: stable both-edges; scrollbar-color: var(--scrollbar-thumb) transparent; scrollbar-width: thin; }
 .page-main::-webkit-scrollbar { width: 8px; height: 8px; }

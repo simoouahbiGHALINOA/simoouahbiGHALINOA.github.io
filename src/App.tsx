@@ -151,7 +151,7 @@ function HomePage() {
       <section className="hero-section">
         <div className="hero-content">
           <p className="eyebrow">CREATOR &amp; MAINTAINER OF ECOS-SYS</p>
-          <h1>Hi, I’m <span>simoouahbiGHALINOA.</span><br />I build <span className="gradient-text">ECO.</span></h1>
+          <h1>Hi, I’m <span>simoouahbiGHALINOA.</span><br />I build <span className="gradient-text">ECOSYSTEM</span></h1>
           <p className="hero-subtitle">A personal home for my work, my ecosystem, and the music I enjoy. Built with @eco and connected to the open source project.</p>
           <div className="hero-actions">
             <a className="primary-button" href="/about.html">Get to know me <ArrowUpRight size={16} /></a>
@@ -160,7 +160,6 @@ function HomePage() {
           </div>
           <p className="hero-caption">One ecosystem · built in public · powered by curiosity</p>
         </div>
-        <div className="hero-orbit" aria-hidden="true"><span /><span /><span /></div>
       </section>
 
       <section className="content-section intro-section" id="ecosystem">

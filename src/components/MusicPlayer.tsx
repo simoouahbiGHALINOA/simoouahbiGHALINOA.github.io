@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Disc3, ListMusic, Music2, Pause, Play, Plus, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
+import { Disc3, ListMusic, Music2, Pause, Play, Plus, Share2, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
 import { PUBLIC_PLAYLIST } from '../music/playlist';
 import { addDeviceTracks, chooseAudioFiles, readDeviceTracks, removeDeviceTrack, type StoredDeviceTrack } from '../music/library';
 import {
@@ -134,6 +134,7 @@ export default function MusicPlayer() {
   const [volumePercent, setVolumePercent] = useState(100);
   const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeLibraryTab, setActiveLibraryTab] = useState<'playlist' | 'add' | 'share'>('playlist');
   const [syncPairing, setSyncPairing] = useState<MusicSyncPairing | null>(readMusicSyncCode);
   const [pendingPairing, setPendingPairing] = useState<MusicSyncPairing | null>(null);
   const [syncCodeInput, setSyncCodeInput] = useState('');
@@ -811,86 +812,99 @@ export default function MusicPlayer() {
         <section className="playlist-popover" aria-label="Music library">
           <div className="playlist-heading">
             <div>
-              <span className="eyebrow">YOUR LISTENING SPACE</span>
               <h2>Music library</h2>
             </div>
             <button type="button" className="icon-button" aria-label="Close music library" onClick={() => setIsOpen(false)}><X size={18} /></button>
           </div>
-          <p className="privacy-note">Your device tracks and saved links stay in this browser unless you pair it with a shared music room. Pairing uploads imported audio files and shares saved audio links.</p>
-          <div className="track-list">
-            {tracks.length ? tracks.map((track, index) => (
-              <div className={`track-row ${track.id === activeTrack?.id ? 'selected' : ''}`} key={track.id}>
-                <button type="button" className="track-select" onClick={() => selectTrack(index, Boolean(audio.current && !audio.current.paused))} aria-current={track.id === activeTrack?.id ? 'true' : undefined}>
-                  <span className="track-art"><Music2 size={16} /></span>
-                  <span className="track-label"><strong>{track.title}</strong><small>{track.artist} · {track.kind === 'public' ? 'Public playlist' : track.kind === 'shared' ? 'Shared music room' : 'Private to this device'}</small></span>
-                </button>
-                {track.kind !== 'public' && <button type="button" className="icon-button remove-track" aria-label={`Remove ${track.title}`} onClick={() => void deleteTrack(track)}><Trash2 size={15} /></button>}
-              </div>
-            )) : <p className="empty-library">No tracks yet. Add music you have permission to use.</p>}
+          <nav className="music-tabs" aria-label="Music library sections">
+            <button type="button" aria-pressed={activeLibraryTab === 'playlist'} onClick={() => setActiveLibraryTab('playlist')}><Music2 size={15} />Playlist</button>
+            <button type="button" aria-pressed={activeLibraryTab === 'add'} onClick={() => setActiveLibraryTab('add')}><Upload size={15} />Add music</button>
+            <button type="button" aria-pressed={activeLibraryTab === 'share'} onClick={() => setActiveLibraryTab('share')}><Share2 size={15} />Share/connect</button>
+          </nav>
+          <div className="player-notice-slot" role="status" aria-live="polite" aria-atomic="true">
+            {message && <p className="player-message" title={message}>{message}</p>}
           </div>
-          <div className="music-sync-settings">
-            <h3>Sync music across clients</h3>
-            {syncUploadStatus === 'uploading' && <p className="privacy-note" role="status">Uploading imported audio to the shared room. Keep this site open.</p>}
-            {syncUploadStatus === 'ready' && <p className="privacy-note" role="status">Imported audio is uploaded and ready to play on other connected sites.</p>}
-            <p>
-              {!isMusicSyncConfigured()
-                ? 'Shared music is not configured on this site.'
-                : syncPairing
-                  ? `Private pairing · ${syncConnectionStatus}`
-                  : 'Create a code here, or paste a code from another site to join its music room.'}
-            </p>
-            {pendingPairing ? (
-              <div className="add-music" role="group" aria-labelledby="sync-confirm-title">
-                <h4 id="sync-confirm-title">Confirm pairing</h4>
-                <p className="privacy-note">This shares saved audio links and uploads this browser’s imported audio to the room. Anyone with this code can listen to or remove shared tracks.</p>
-                <input className="sync-code-input" aria-label="Pairing code awaiting confirmation" readOnly value={`${pendingPairing.roomId}.${pendingPairing.deviceId}`} />
-                <div className="sync-actions">
-                  <button type="button" className="secondary-button" onClick={() => setPendingPairing(null)}>Cancel</button>
-                  <button type="button" className="secondary-button" onClick={confirmSyncPairing}>Confirm &amp; connect</button>
-                </div>
-              </div>
-            ) : syncPairing ? (
+          <div className={`playlist-panel playlist-panel-${activeLibraryTab}`} key={activeLibraryTab}>
+            {activeLibraryTab === 'playlist' && (
               <>
-                <label className="visually-hidden" htmlFor="music-sync-code">Private pairing code</label>
-                <input id="music-sync-code" className="sync-code-input" readOnly value={`${syncPairing.roomId}.${syncPairing.deviceId}`} />
-                <div className="sync-actions">
-                  <button type="button" className="secondary-button" onClick={() => void copyMusicSyncCode()}>Copy pairing code</button>
-                  <button type="button" className="secondary-button" onClick={disconnectMusicSync}>Disconnect this site</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <label className="visually-hidden" htmlFor="music-sync-code">Paste a private pairing code</label>
-                <input
-                  id="music-sync-code"
-                  className="sync-code-input"
-                  value={syncCodeInput}
-                  onChange={(event) => setSyncCodeInput(event.currentTarget.value)}
-                  placeholder="Paste the code from the other site"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <div className="sync-actions">
-                  <button type="button" className="secondary-button" disabled={!isMusicSyncConfigured()} onClick={createMusicRoom}>Create a private code</button>
-                  <button type="button" className="secondary-button" disabled={!isMusicSyncConfigured() || !syncCodeInput.trim()} onClick={() => pairMusicSync(syncCodeInput)}>Connect this site</button>
+                <p className="panel-description">Choose a track to play. Your music stays on this device unless you share it.</p>
+                <div className="track-list">
+                  {tracks.length ? tracks.map((track, index) => (
+                    <div className={`track-row ${track.id === activeTrack?.id ? 'selected' : ''}`} key={track.id}>
+                      <button type="button" className="track-select" onClick={() => selectTrack(index, Boolean(audio.current && !audio.current.paused))} aria-current={track.id === activeTrack?.id ? 'true' : undefined}>
+                        <span className="track-art"><Music2 size={16} /></span>
+                        <span className="track-label"><strong>{track.title}</strong><small>{track.artist} · {track.kind === 'public' ? 'Public playlist' : track.kind === 'shared' ? 'Shared music room' : syncPairing ? 'Shared music room' : 'Private to this device'}</small></span>
+                      </button>
+                      {track.kind !== 'public' && <button type="button" className="icon-button remove-track" aria-label={`Remove ${track.title}`} onClick={() => void deleteTrack(track)}><Trash2 size={15} /></button>}
+                    </div>
+                  )) : <p className="empty-library">No tracks yet. Add music you have permission to use.</p>}
                 </div>
               </>
             )}
-          </div>
-          <div className="add-music">
-            <button type="button" className="secondary-button" onClick={() => void openAudioPicker()}><Upload size={15} /> Add audio files</button>
-            <input ref={fileInput} className="visually-hidden" type="file" accept="audio/*" multiple onChange={(event) => void addFiles(event.currentTarget.files)} />
-            <p className="storage-note">Imported files use this browser's File System (OPFS) when available, with IndexedDB as a fallback.</p>
-            <form className="url-form" onSubmit={addUrl}>
-              <label htmlFor="track-title">Save an audio URL to this device</label>
-              <input id="track-title" value={urlTitle} onChange={(event) => setUrlTitle(event.target.value)} placeholder="Track title (optional)" />
-              <div className="url-entry">
-                <input aria-label="Audio URL" type="url" required value={urlValue} onChange={(event) => setUrlValue(event.target.value)} placeholder="https://example.com/song.mp3" />
-                <button type="submit" className="icon-button" aria-label="Add audio URL"><Plus size={18} /></button>
+            {activeLibraryTab === 'add' && (
+              <div className="add-music-panel">
+                <button type="button" className="secondary-button" onClick={() => void openAudioPicker()}><Upload size={15} /> Add audio files</button>
+                <input ref={fileInput} className="visually-hidden" type="file" accept="audio/*" multiple onChange={(event) => void addFiles(event.currentTarget.files)} />
+                <p className="storage-note">Audio files save on this device. Pairing uploads imported audio to the shared room.</p>
+                <form className="url-form" onSubmit={addUrl}>
+                  <label htmlFor="track-title">Save an audio URL to this device</label>
+                  <input id="track-title" value={urlTitle} onChange={(event) => setUrlTitle(event.target.value)} placeholder="Track title (optional)" />
+                  <div className="url-entry">
+                    <input aria-label="Audio URL" type="url" required value={urlValue} onChange={(event) => setUrlValue(event.target.value)} placeholder="https://example.com/song.mp3" />
+                    <button type="submit" className="icon-button" aria-label="Add audio URL"><Plus size={18} /></button>
+                  </div>
+                </form>
               </div>
-            </form>
+            )}
+            {activeLibraryTab === 'share' && (
+              <div className="music-sync-settings">
+                <h3>Share music across clients</h3>
+                {syncUploadStatus === 'uploading' && <p className="sync-status" role="status">Uploading imported audio. Keep this site open.</p>}
+                {syncUploadStatus === 'ready' && <p className="sync-status" role="status">Shared audio is ready on connected sites.</p>}
+                <p>{!isMusicSyncConfigured()
+                  ? 'Shared music is not configured on this site.'
+                  : syncPairing
+                    ? `Room connected · ${syncConnectionStatus}`
+                    : 'Create a room or enter a code to join an existing room.'}</p>
+                {pendingPairing ? (
+                  <div className="pairing-confirmation" role="group" aria-labelledby="sync-confirm-title">
+                    <h4 id="sync-confirm-title">Confirm room connection</h4>
+                    <p className="privacy-note">Anyone with this code can listen to or remove shared tracks.</p>
+                    <div className="sync-actions">
+                      <button type="button" className="secondary-button" onClick={() => setPendingPairing(null)}>Cancel</button>
+                      <button type="button" className="secondary-button" onClick={confirmSyncPairing}>Confirm &amp; connect</button>
+                    </div>
+                    <output className="pairing-code-display" aria-label="Pairing code to share">{`${pendingPairing.roomId}.${pendingPairing.deviceId}`}</output>
+                  </div>
+                ) : syncPairing ? (
+                  <>
+                    <div className="sync-actions">
+                      <button type="button" className="secondary-button" onClick={() => void copyMusicSyncCode()}>Copy pairing code</button>
+                      <button type="button" className="secondary-button" onClick={disconnectMusicSync}>Disconnect room</button>
+                    </div>
+                    <output className="pairing-code-display" aria-label="Private pairing code">{`${syncPairing.roomId}.${syncPairing.deviceId}`}</output>
+                  </>
+                ) : (
+                  <>
+                    <label className="visually-hidden" htmlFor="music-sync-code">Paste a private pairing code</label>
+                    <input
+                      id="music-sync-code"
+                      className="sync-code-input"
+                      value={syncCodeInput}
+                      onChange={(event) => setSyncCodeInput(event.currentTarget.value)}
+                      placeholder="Paste a room code"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <div className="sync-actions">
+                      <button type="button" className="secondary-button" disabled={!isMusicSyncConfigured()} onClick={createMusicRoom}>Create a room</button>
+                      <button type="button" className="secondary-button" disabled={!isMusicSyncConfigured() || !syncCodeInput.trim()} onClick={() => pairMusicSync(syncCodeInput)}>Join a room</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-          {message && <p className="player-message" role="status">{message}</p>}
         </section>
       )}
       <button type="button" className="now-playing" onClick={() => setIsOpen((open) => !open)} aria-expanded={isOpen} aria-label="Open music library">
