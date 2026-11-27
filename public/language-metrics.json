@@ -1,6 +1,6 @@
 {
   "method": "first-party source file bytes",
-  "totalSourceBytes": 256439,
+  "totalSourceBytes": 256432,
   "languages": [
     {
       "name": "Rust",
@@ -61,7 +61,7 @@
       "extension": ".css",
       "starterDirectory": "starters/css",
       "fileCount": 4,
-      "sourceBytes": 65889,
+      "sourceBytes": 65882,
       "actualPercent": 25.7,
       "equalPercent": 12.5
     },
