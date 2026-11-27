@@ -47,6 +47,16 @@ export function isMusicSyncConfigured() {
   return Boolean(relayUrl);
 }
 
+export function isMusicSyncAudioUrl(audioUrl: string) {
+  try {
+    const url = new URL(audioUrl, `${relayUrl}/`);
+    return url.origin === new URL(relayUrl).origin &&
+      /^\/v1\/library\/audio\/[a-zA-Z0-9_-]{1,128}$/.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function isHexCode(value: unknown, length: number): value is string {
   return typeof value === 'string' && value.length === length && /^[a-f0-9]+$/i.test(value);
 }

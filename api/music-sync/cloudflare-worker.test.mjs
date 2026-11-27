@@ -98,10 +98,10 @@ test('relay rejects unconfigured origins and answers preflight for allowed origi
   assert.equal(noOriginLibrary.status, 403);
 });
 
-test('all nine configured Pages clients are allowed by the relay', async () => {
+test('all ten configured Pages clients are allowed by the relay', async () => {
   const env = createEnvironment();
   env.ALLOWED_ORIGINS = clientOrigins.join(',');
-  assert.equal(clientOrigins.length, 9);
+  assert.equal(clientOrigins.length, 10);
 
   for (const clientOrigin of clientOrigins) {
     const response = await worker.fetch(new Request('https://relay.example/v1/library', {
@@ -162,6 +162,7 @@ test('paired library uploads and serves an audio file with byte-range support', 
 
   const audioResponse = await worker.fetch(apiRequest(fileTrack.audioUrl), env);
   assert.equal(audioResponse.status, 200);
+  assert.equal(audioResponse.headers.get('Access-Control-Allow-Origin'), origin);
   assert.equal(await audioResponse.text(), 'music');
 
   const rangeResponse = await worker.fetch(apiRequest(fileTrack.audioUrl, {
