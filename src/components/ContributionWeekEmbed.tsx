@@ -1,30 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-
-type ContributionSource = 'ecosystem' | 'github';
 
 interface ContributionDay {
   date: string;
-  ecosystem: number;
-  github: number;
+  count: number;
 }
 
-interface ContributionWidgetData {
-  type: 'eco-contribution-data';
+interface GitHubContributionData {
   site: string;
+  username: string;
+  generatedAt: string;
   days: ContributionDay[];
-  githubAvailable: boolean;
 }
 
-const CONTRIBUTION_ORIGIN = 'https://0661619230.com';
-
-function isContributionWidgetData(value: unknown): value is ContributionWidgetData {
+function isGitHubContributionData(value: unknown): value is GitHubContributionData {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Record<string, unknown>;
   return (
-    candidate.type === 'eco-contribution-data' &&
     typeof candidate.site === 'string' &&
-    typeof candidate.githubAvailable === 'boolean' &&
+    typeof candidate.username === 'string' &&
+    typeof candidate.generatedAt === 'string' &&
     Array.isArray(candidate.days) &&
     candidate.days.length === 7 &&
     candidate.days.every((day) => {
@@ -32,57 +27,59 @@ function isContributionWidgetData(value: unknown): value is ContributionWidgetDa
       const contribution = day as Record<string, unknown>;
       return (
         typeof contribution.date === 'string' &&
-        typeof contribution.ecosystem === 'number' &&
-        typeof contribution.github === 'number'
+        /^\d{4}-\d{2}-\d{2}$/.test(contribution.date) &&
+        typeof contribution.count === 'number' &&
+        Number.isInteger(contribution.count) &&
+        contribution.count >= 0
       );
     })
   );
 }
 
 export default function ContributionWeekEmbed({ site }: { site: string }) {
-  const [source, setSource] = useState<ContributionSource>('ecosystem');
-  const [data, setData] = useState<ContributionWidgetData | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
+  const [data, setData] = useState<GitHubContributionData | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [headerElement, setHeaderElement] = useState<HTMLElement | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     setHeaderElement(document.querySelector<HTMLElement>('.eco-header'));
   }, []);
 
   useEffect(() => {
-    const frame = iframeRef.current;
+    const controller = new AbortController();
     setData(null);
-    setUnavailable(false);
-    const timeout = window.setTimeout(() => setUnavailable(true), 8000);
-    const handleMessage = (event: MessageEvent<unknown>) => {
-      if (
-        event.origin !== CONTRIBUTION_ORIGIN ||
-        event.source !== frame?.contentWindow ||
-        !isContributionWidgetData(event.data) ||
-        event.data.site !== site
-      ) {
-        return;
+    setLoadError(null);
+    async function loadContributions() {
+      try {
+        const response = await fetch('/github-contributions.json', {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (response.status === 404) {
+          throw new Error('GitHub feed pending — run the Actions workflow.');
+        }
+        if (!response.ok) {
+          throw new Error(`GitHub contribution feed failed with HTTP ${response.status}.`);
+        }
+        const payload: unknown = await response.json();
+        if (!isGitHubContributionData(payload) || payload.site !== site) {
+          throw new Error('GitHub contribution data is invalid or belongs to another site.');
+        }
+        setData(payload);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setLoadError(
+          error instanceof Error ? error.message : 'GitHub contributions could not be loaded.',
+        );
       }
-      setData(event.data);
-      setUnavailable(false);
-      window.clearTimeout(timeout);
-    };
-
-    window.addEventListener('message', handleMessage);
+    }
+    void loadContributions();
     return () => {
-      window.clearTimeout(timeout);
-      window.removeEventListener('message', handleMessage);
+      controller.abort();
     };
-  }, [site, headerElement]);
+  }, [site]);
 
-  const status = !data
-    ? unavailable
-      ? 'Contribution service unavailable'
-      : 'Loading contributions…'
-    : source === 'github' && !data.githubAvailable
-      ? 'GitHub not connected'
-      : '';
+  const status = data ? '' : (loadError ?? 'Loading GitHub contributions…');
 
   return headerElement
     ? createPortal(
@@ -123,24 +120,15 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
             font-weight: 700;
             white-space: nowrap;
           }
-          .eco-contribution-source-switch {
-            display: flex;
+          .eco-contribution-provider {
             flex: 0 0 auto;
-            gap: 2px;
-          }
-          .eco-contribution-source-switch button {
             padding: 0.2rem 0.35rem;
             border: 1px solid var(--border);
             border-radius: 0.3rem;
-            background: transparent;
-            color: inherit;
-            font-size: 9px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-          .eco-contribution-source-switch button[aria-pressed="true"] {
             background: var(--accent);
             color: var(--bg, #0b0d13);
+            font-size: 9px;
+            font-weight: 700;
           }
           .eco-contribution-days {
             display: grid;
@@ -172,19 +160,6 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
             text-overflow: ellipsis;
             white-space: nowrap;
           }
-          .eco-contribution-widget-frame {
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            width: 1px;
-            height: 1px;
-            border: 0;
-            opacity: 0;
-            pointer-events: none;
-          }
-        }
-        @media (min-width: 1200px) and (max-width: 1400px) {
-          .eco-contribution-status { display: none; }
         }
       `}</style>
           <div
@@ -193,26 +168,7 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
           >
             <div className="eco-contribution-header" aria-label="Last seven days of contributions">
               <span className="eco-contribution-label">Last 7 days</span>
-              <div
-                className="eco-contribution-source-switch"
-                role="group"
-                aria-label="Contribution source"
-              >
-                <button
-                  type="button"
-                  aria-pressed={source === 'ecosystem'}
-                  onClick={() => setSource('ecosystem')}
-                >
-                  Eco
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={source === 'github'}
-                  onClick={() => setSource('github')}
-                >
-                  GitHub
-                </button>
-              </div>
+              <span className="eco-contribution-provider">GitHub</span>
               <div className="eco-contribution-days" aria-label="Daily contributions">
                 {Array.from({ length: 7 }, (_, index) => {
                   const day = data?.days[index];
@@ -222,10 +178,7 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
                         timeZone: 'UTC',
                       }).format(new Date(`${day.date}T00:00:00Z`))
                     : '—';
-                  const count =
-                    !day || (source === 'github' && !data.githubAvailable)
-                      ? '—'
-                      : String(day[source]);
+                  const count = day ? String(day.count) : '—';
                   return (
                     <span
                       className="eco-contribution-day"
@@ -243,20 +196,15 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
                   );
                 })}
               </div>
-              <span className="eco-contribution-status" role="status" aria-live="polite">
+              <span
+                className="eco-contribution-status"
+                role="status"
+                aria-live="polite"
+                title={status}
+              >
                 {status}
               </span>
             </div>
-            <iframe
-              ref={iframeRef}
-              className="eco-contribution-widget-frame"
-              src={`https://0661619230.com/contribution-widget/${encodeURIComponent(site)}?compact=1`}
-              title={`Contribution data provider for ${site}`}
-              loading="eager"
-              referrerPolicy="strict-origin-when-cross-origin"
-              aria-hidden="true"
-              tabIndex={-1}
-            />
           </div>
         </>,
         headerElement,
