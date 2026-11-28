@@ -452,3 +452,29 @@ a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
+
+.playlist-popover {
+  position: absolute;
+  z-index: 30;
+  right: auto;
+  bottom: calc(100% + 0.75rem);
+  left: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: 0.55rem;
+  width: min(440px, calc(100vw - 2rem));
+  height: min(460px, calc(100dvh - var(--header-total-height) - var(--footer-total-height) - 2rem));
+  max-height: 680px;
+  padding: 0.85rem;
+  overflow: hidden;
+}
+
+@media (max-width: 760px) {
+  .playlist-popover {
+    position: fixed;
+    right: 0.5rem;
+    bottom: calc(var(--footer-total-height) + 0.5rem);
+    left: 0.5rem;
+    width: auto;
+  }
+}
