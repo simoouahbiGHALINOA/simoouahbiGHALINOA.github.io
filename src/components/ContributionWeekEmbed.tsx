@@ -9,6 +9,8 @@ interface ContributionDay {
 interface GitHubContributionData {
   site: string;
   username: string;
+  repository: string;
+  branch: string;
   generatedAt: string;
   days: ContributionDay[];
 }
@@ -19,6 +21,8 @@ function isGitHubContributionData(value: unknown): value is GitHubContributionDa
   return (
     typeof candidate.site === 'string' &&
     typeof candidate.username === 'string' &&
+    typeof candidate.repository === 'string' &&
+    typeof candidate.branch === 'string' &&
     typeof candidate.generatedAt === 'string' &&
     Array.isArray(candidate.days) &&
     candidate.days.length === 7 &&
@@ -36,7 +40,15 @@ function isGitHubContributionData(value: unknown): value is GitHubContributionDa
   );
 }
 
-export default function ContributionWeekEmbed({ site }: { site: string }) {
+export default function ContributionWeekEmbed({
+  site,
+  repository,
+  branch,
+}: {
+  site: string;
+  repository: string;
+  branch: string;
+}) {
   const [data, setData] = useState<GitHubContributionData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [headerElement, setHeaderElement] = useState<HTMLElement | null>(null);
@@ -56,14 +68,21 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
           signal: controller.signal,
         });
         if (response.status === 404) {
-          throw new Error('GitHub feed pending — run the Actions workflow.');
+          throw new Error('GitHub repository commit feed is not published yet.');
         }
         if (!response.ok) {
           throw new Error(`GitHub contribution feed failed with HTTP ${response.status}.`);
         }
         const payload: unknown = await response.json();
-        if (!isGitHubContributionData(payload) || payload.site !== site) {
-          throw new Error('GitHub contribution data is invalid or belongs to another site.');
+        if (
+          !isGitHubContributionData(payload) ||
+          payload.site !== site ||
+          payload.repository !== repository ||
+          payload.branch !== branch
+        ) {
+          throw new Error(
+            'GitHub commit data is invalid or belongs to another site, repository, or branch.',
+          );
         }
         setData(payload);
       } catch (error) {
@@ -166,10 +185,13 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
             className="eco-contribution-widget-shell"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="eco-contribution-header" aria-label="Last seven days of contributions">
-              <span className="eco-contribution-label">Last 7 days</span>
+            <div
+              className="eco-contribution-header"
+              aria-label={`Last 7 days of commits to ${repository}/${branch}`}
+            >
+              <span className="eco-contribution-label">Repo commits</span>
               <span className="eco-contribution-provider">GitHub</span>
-              <div className="eco-contribution-days" aria-label="Daily contributions">
+              <div className="eco-contribution-days" aria-label="Daily repository commits">
                 {Array.from({ length: 7 }, (_, index) => {
                   const day = data?.days[index];
                   const dayName = day
@@ -184,10 +206,10 @@ export default function ContributionWeekEmbed({ site }: { site: string }) {
                       className="eco-contribution-day"
                       key={day?.date ?? index}
                       aria-label={
-                        day ? `${dayName}: ${count} contributions` : 'Contribution data unavailable'
+                        day ? `${dayName}: ${count} commits` : 'Commit data unavailable'
                       }
                       title={
-                        day ? `${dayName}: ${count} contributions` : 'Contribution data unavailable'
+                        day ? `${dayName}: ${count} commits` : 'Commit data unavailable'
                       }
                     >
                       <span className="eco-contribution-day-name">{dayName}</span>

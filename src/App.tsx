@@ -162,7 +162,11 @@ function HomePage() {
           <p className="hero-caption">One ecosystem · built in public · powered by curiosity</p>
         </div>
       </section>
-      <ContributionWeekEmbed site="simoouahbighalinoa" />
+      <ContributionWeekEmbed
+        site="simoouahbighalinoa"
+        repository="simoouahbiGHALINOA/simoouahbiGHALINOA.github.io"
+        branch="main"
+      />
 
       <section className="content-section intro-section" id="ecosystem">
         <div className="section-heading"><span className="eyebrow">THE PROJECT</span><h2>One ecosystem, many ideas.</h2><p>ECOS-SYS brings together connected applications, developer tools, and AI experiments. This Pages site is its lightweight public front door.</p></div>

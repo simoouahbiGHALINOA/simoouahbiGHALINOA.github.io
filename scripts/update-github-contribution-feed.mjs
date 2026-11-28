@@ -3,7 +3,8 @@ import { dirname, resolve } from 'node:path';
 
 const username = process.env.GITHUB_USERNAME?.trim();
 const site = process.env.CONTRIBUTION_SITE?.trim();
-const token = process.env.GITHUB_TOKEN?.trim() || process.env.GITHUB_PAT?.trim();
+const repository = process.env.CONTRIBUTION_REPOSITORY?.trim();
+const branch = process.env.CONTRIBUTION_BRANCH?.trim() || 'main';
 
 if (!username || !/^[a-z\d-]+$/i.test(username)) {
   throw new Error('Set GITHUB_USERNAME to the target GitHub account.');
@@ -11,8 +12,11 @@ if (!username || !/^[a-z\d-]+$/i.test(username)) {
 if (!site || !/^[a-z0-9-]+$/.test(site)) {
   throw new Error('Set CONTRIBUTION_SITE to the client site ID.');
 }
-if (!token) {
-  throw new Error('Set GITHUB_TOKEN or GITHUB_PAT in the GitHub Actions environment.');
+if (!repository || !/^[\w.-]+\/[\w.-]+$/.test(repository)) {
+  throw new Error('Set CONTRIBUTION_REPOSITORY to the owner/repository to count.');
+}
+if (!branch) {
+  throw new Error('Set CONTRIBUTION_BRANCH to the branch to count.');
 }
 
 const now = new Date();
@@ -24,78 +28,49 @@ const dates = Array.from({ length: 7 }, (_, index) => {
 });
 const from = `${dates[0]}T00:00:00Z`;
 
-const response = await fetch('https://api.github.com/graphql', {
-  method: 'POST',
-  headers: {
-    authorization: `Bearer ${token}`,
-    accept: 'application/vnd.github+json',
-    'content-type': 'application/json',
-    'user-agent': 'github-contribution-feed',
-  },
-  body: JSON.stringify({
-    query: `query ContributionWeek($login: String!, $from: DateTime!, $to: DateTime!) {
-      user(login: $login) {
-        login
-        contributionsCollection(from: $from, to: $to) {
-          contributionCalendar {
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-              }
-            }
-          }
-        }
-      }
-    }`,
-    variables: { login: username, from, to: now.toISOString() },
-  }),
-  signal: AbortSignal.timeout(30_000),
-});
+const contributionCounts = new Map(dates.map((date) => [date, 0]));
+const headers = {
+  accept: 'application/vnd.github+json',
+  'user-agent': 'github-repository-commit-feed',
+};
+const token = process.env.GITHUB_TOKEN?.trim() || process.env.GITHUB_PAT?.trim();
+if (token) headers.authorization = `Bearer ${token}`;
 
-if (!response.ok) {
-  throw new Error(`GitHub contribution request failed with HTTP ${response.status}.`);
-}
+for (let page = 1; ; page += 1) {
+  const url = new URL(`https://api.github.com/repos/${repository}/commits`);
+  url.searchParams.set('sha', branch);
+  url.searchParams.set('since', from);
+  url.searchParams.set('until', now.toISOString());
+  url.searchParams.set('per_page', '100');
+  url.searchParams.set('page', String(page));
 
-const result = await response.json();
-if (result.errors?.length) {
-  throw new Error(
-    `GitHub could not return contribution activity: ${result.errors
-      .map((error) => error.message)
-      .join('; ')}`,
-  );
-}
-
-const user = result.data?.user;
-const weeks = user?.contributionsCollection?.contributionCalendar?.weeks;
-if (!user || !Array.isArray(weeks)) {
-  throw new Error(`GitHub returned no contribution calendar for @${username}.`);
-}
-
-const contributionCounts = new Map();
-for (const week of weeks) {
-  if (!Array.isArray(week.contributionDays)) {
-    throw new Error('GitHub returned an invalid contribution calendar.');
+  const response = await fetch(url, {
+    headers,
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) {
+    throw new Error(`GitHub commit request failed with HTTP ${response.status}.`);
   }
-  for (const day of week.contributionDays) {
-    if (
-      typeof day.date !== 'string' ||
-      !Number.isInteger(day.contributionCount) ||
-      day.contributionCount < 0
-    ) {
-      throw new Error('GitHub returned an invalid contribution day.');
+
+  const commits = await response.json();
+  if (!Array.isArray(commits)) {
+    throw new Error('GitHub returned an invalid commit list.');
+  }
+
+  for (const commit of commits) {
+    const authorDate = commit?.commit?.author?.date;
+    if (typeof authorDate !== 'string' || Number.isNaN(Date.parse(authorDate))) {
+      throw new Error('GitHub returned a commit with an invalid author date.');
     }
-    contributionCounts.set(day.date, day.contributionCount);
+    const date = authorDate.slice(0, 10);
+    if (!contributionCounts.has(date)) continue;
+    contributionCounts.set(date, contributionCounts.get(date) + 1);
   }
+
+  if (commits.length < 100) break;
 }
 
-const days = dates.map((date) => {
-  const count = contributionCounts.get(date);
-  if (count === undefined) {
-    throw new Error(`GitHub omitted contribution data for ${date}.`);
-  }
-  return { date, count };
-});
+const days = dates.map((date) => ({ date, count: contributionCounts.get(date) }));
 
 const outputPath = resolve(
   process.env.GITHUB_CONTRIBUTION_OUTPUT_PATH ?? 'public/github-contributions.json',
@@ -103,6 +78,6 @@ const outputPath = resolve(
 await mkdir(dirname(outputPath), { recursive: true });
 await writeFile(
   outputPath,
-  `${JSON.stringify({ site, username: user.login, generatedAt: now.toISOString(), days }, null, 2)}\n`,
+  `${JSON.stringify({ site, username, repository, branch, generatedAt: now.toISOString(), days }, null, 2)}\n`,
 );
-console.log(`Wrote GitHub contribution feed for @${user.login} to ${outputPath}.`);
+console.log(`Wrote commit feed for ${repository}@${branch} to ${outputPath}.`);
