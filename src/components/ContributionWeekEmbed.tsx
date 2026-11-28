@@ -15,6 +15,22 @@ interface GitHubContributionData {
   days: ContributionDay[];
 }
 
+interface EcosystemContributionDay {
+  date: string;
+  ecosystem: number;
+  github: number;
+}
+
+interface EcosystemContributionData {
+  generatedAt: string;
+  githubAvailable: boolean;
+  days: EcosystemContributionDay[];
+}
+
+type ContributionSource = 'eco' | 'github';
+
+const ECO_CONTRIBUTION_API_BASE_URL = 'https://0661619230.com';
+
 function isGitHubContributionData(value: unknown): value is GitHubContributionData {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Record<string, unknown>;
@@ -40,6 +56,29 @@ function isGitHubContributionData(value: unknown): value is GitHubContributionDa
   );
 }
 
+function isEcosystemContributionData(value: unknown): value is EcosystemContributionData {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.generatedAt === 'string' &&
+    typeof candidate.githubAvailable === 'boolean' &&
+    Array.isArray(candidate.days) &&
+    candidate.days.length === 7 &&
+    candidate.days.every((day) => {
+      if (typeof day !== 'object' || day === null) return false;
+      const contribution = day as Record<string, unknown>;
+      return (
+        typeof contribution.date === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(contribution.date) &&
+        Number.isInteger(contribution.ecosystem) &&
+        Number(contribution.ecosystem) >= 0 &&
+        Number.isInteger(contribution.github) &&
+        Number(contribution.github) >= 0
+      );
+    })
+  );
+}
+
 export default function ContributionWeekEmbed({
   site,
   repository,
@@ -51,6 +90,10 @@ export default function ContributionWeekEmbed({
 }) {
   const [data, setData] = useState<GitHubContributionData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [ecoData, setEcoData] = useState<EcosystemContributionData | null>(null);
+  const [ecoLoadError, setEcoLoadError] = useState<string | null>(null);
+  const [ecoLoading, setEcoLoading] = useState(true);
+  const [source, setSource] = useState<ContributionSource>('github');
   const [headerElement, setHeaderElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -98,7 +141,51 @@ export default function ContributionWeekEmbed({
     };
   }, [site, repository, branch]);
 
-  const status = data ? '' : (loadError ?? 'Loading GitHub contributions…');
+  useEffect(() => {
+    const controller = new AbortController();
+    setEcoData(null);
+    setEcoLoadError(null);
+    setEcoLoading(true);
+
+    async function loadEcosystemContributions() {
+      try {
+        const response = await fetch(
+          `${ECO_CONTRIBUTION_API_BASE_URL}/api/public/client-contributions/${encodeURIComponent(site)}`,
+          { cache: 'no-store', signal: controller.signal },
+        );
+        if (!response.ok) {
+          throw new Error(`ECO contribution feed failed with HTTP ${response.status}.`);
+        }
+        const payload: unknown = await response.json();
+        if (!isEcosystemContributionData(payload)) {
+          throw new Error('ECO contribution data is invalid.');
+        }
+        setEcoData(payload);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setEcoLoadError(
+          error instanceof Error ? error.message : 'ECO contributions could not be loaded.',
+        );
+      } finally {
+        if (!controller.signal.aborted) setEcoLoading(false);
+      }
+    }
+
+    void loadEcosystemContributions();
+    return () => {
+      controller.abort();
+    };
+  }, [site]);
+
+  const status =
+    source === 'github'
+      ? data
+        ? ''
+        : (loadError ?? 'Loading GitHub contributions…')
+      : ecoData
+        ? ''
+        : (ecoLoadError ?? (ecoLoading ? 'Loading ECO contributions…' : 'ECO data unavailable.'));
+  const sourceLabel = source === 'eco' ? 'ECO' : 'GitHub';
 
   return headerElement
     ? createPortal(
@@ -112,7 +199,7 @@ export default function ContributionWeekEmbed({
             flex: 1 1 400px;
             min-width: 260px;
             max-width: 660px;
-            height: var(--header-total-height, 40px);
+            height: 30px;
             margin: 0;
           }
           .eco-header > .header-side-right {
@@ -139,15 +226,35 @@ export default function ContributionWeekEmbed({
             font-weight: 700;
             white-space: nowrap;
           }
-          .eco-contribution-provider {
+          .eco-contribution-source-toggle {
+            display: flex;
             flex: 0 0 auto;
-            padding: 0.2rem 0.35rem;
+            align-items: center;
+            gap: 1px;
+            padding: 1px;
             border: 1px solid var(--border);
             border-radius: 0.3rem;
-            background: var(--accent);
-            color: var(--bg, #0b0d13);
+            background: rgba(255, 255, 255, 0.04);
+          }
+          .eco-contribution-source-button {
+            padding: 0.22rem 0.35rem;
+            border: 0;
+            border-radius: 0.2rem;
+            background: transparent;
+            color: var(--text);
             font-size: 9px;
             font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            cursor: pointer;
+          }
+          .eco-contribution-source-button[aria-pressed="true"] {
+            background: var(--accent);
+            color: var(--bg, #0b0d13);
+          }
+          .eco-contribution-source-button:focus-visible {
+            outline: 2px solid var(--text);
+            outline-offset: 1px;
           }
           .eco-contribution-days {
             display: grid;
@@ -159,18 +266,19 @@ export default function ContributionWeekEmbed({
           .eco-contribution-day {
             display: flex;
             min-width: 0;
-            height: 28px;
-            flex-direction: column;
+            height: 22px;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 2px;
+            gap: 3px;
             border: 1px solid var(--border);
             border-radius: 0.3rem;
             background: rgba(255, 255, 255, 0.04);
             line-height: 1;
+            white-space: nowrap;
           }
-          .eco-contribution-day-name { font-size: 7px; }
-          .eco-contribution-day-count { font-size: 10px; font-weight: 700; }
+          .eco-contribution-day-name { font-size: 8px; }
+          .eco-contribution-day-count { font-size: 9px; font-weight: 700; }
           .eco-contribution-status {
             flex: 0 0 auto;
             max-width: 100px;
@@ -187,29 +295,57 @@ export default function ContributionWeekEmbed({
           >
             <div
               className="eco-contribution-header"
-              aria-label={`Last 7 days of commits to ${repository}/${branch}`}
+              aria-label={`Last contributions from ${sourceLabel} for ${repository}/${branch}`}
             >
-              <span className="eco-contribution-label">Repo commits</span>
-              <span className="eco-contribution-provider">GitHub</span>
-              <div className="eco-contribution-days" aria-label="Daily repository commits">
+              <span className="eco-contribution-label">Last contributions</span>
+              <div
+                className="eco-contribution-source-toggle"
+                role="group"
+                aria-label="Contribution source"
+              >
+                <button
+                  type="button"
+                  className="eco-contribution-source-button"
+                  aria-pressed={source === 'eco'}
+                  onClick={() => setSource('eco')}
+                >
+                  ECO
+                </button>
+                <button
+                  type="button"
+                  className="eco-contribution-source-button"
+                  aria-pressed={source === 'github'}
+                  onClick={() => setSource('github')}
+                >
+                  GitHub
+                </button>
+              </div>
+              <div
+                className="eco-contribution-days"
+                aria-label={`Daily ${sourceLabel} contributions`}
+              >
                 {Array.from({ length: 7 }, (_, index) => {
-                  const day = data?.days[index];
-                  const dayName = day
+                  const date = data?.days[index]?.date ?? ecoData?.days[index]?.date;
+                  const ecoDay = ecoData?.days.find((day) => day.date === date);
+                  const dayCount =
+                    source === 'eco' ? ecoDay?.ecosystem : data?.days[index]?.count;
+                  const dayName = date
                     ? new Intl.DateTimeFormat(undefined, {
                         weekday: 'short',
                         timeZone: 'UTC',
-                      }).format(new Date(`${day.date}T00:00:00Z`))
+                      }).format(new Date(`${date}T00:00:00Z`))
                     : '—';
-                  const count = day ? String(day.count) : '—';
+                  const count = dayCount === undefined ? '—' : String(dayCount);
+                  const daySource = source === 'eco' ? 'ECO contributions' : 'GitHub commits';
                   return (
                     <span
                       className="eco-contribution-day"
-                      key={day?.date ?? index}
+                      key={date ?? index}
                       aria-label={
-                        day ? `${dayName}: ${count} commits` : 'Commit data unavailable'
+                        date ? `${dayName}: ${count} ${daySource}` : 'Contribution data unavailable'
                       }
                       title={
-                        day ? `${dayName}: ${count} commits` : 'Commit data unavailable'
+                        date ? `${dayName}: ${count} ${daySource}` : 'Contribution data unavailable'
                       }
                     >
                       <span className="eco-contribution-day-name">{dayName}</span>

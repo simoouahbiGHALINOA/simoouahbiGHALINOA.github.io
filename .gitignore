@@ -9,6 +9,7 @@ dist/
 .DS_Store
 Thumbs.db
 public/assets/Enregistrement 2026-11-06 214350.mp4
+public/github-contributions.json
 **/target/
 **/__pycache__/
 *.py[cod]

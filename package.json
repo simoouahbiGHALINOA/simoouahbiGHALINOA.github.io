@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "predev": "npm run generate:language-metrics",
+    "predev": "npm run generate:language-metrics && node scripts/update-github-contribution-feed.mjs",
     "prebuild": "npm run generate:language-metrics",
     "dev": "vite",
     "build": "tsc -b && vite build",

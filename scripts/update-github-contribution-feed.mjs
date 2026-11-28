@@ -1,10 +1,23 @@
 import { mkdir, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 
-const username = process.env.GITHUB_USERNAME?.trim();
-const site = process.env.CONTRIBUTION_SITE?.trim();
-const repository = process.env.CONTRIBUTION_REPOSITORY?.trim();
-const branch = process.env.CONTRIBUTION_BRANCH?.trim() || 'main';
+const configuredRepository = process.env.CONTRIBUTION_REPOSITORY?.trim();
+const gitRepository = configuredRepository
+  ? undefined
+  : execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8' })
+      .trim()
+      .match(/github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/i);
+if (!configuredRepository && !gitRepository) {
+  throw new Error('Set CONTRIBUTION_REPOSITORY or configure a GitHub origin remote.');
+}
+
+const repository = configuredRepository || `${gitRepository[1]}/${gitRepository[2]}`;
+const username = process.env.GITHUB_USERNAME?.trim() || repository.split('/')[0];
+const site = process.env.CONTRIBUTION_SITE?.trim() || username.toLowerCase();
+const branch =
+  process.env.CONTRIBUTION_BRANCH?.trim() ||
+  execFileSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).trim();
 
 if (!username || !/^[a-z\d-]+$/i.test(username)) {
   throw new Error('Set GITHUB_USERNAME to the target GitHub account.');

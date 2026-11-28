@@ -161,11 +161,11 @@ The starter kit keeps one runnable example per language in a separate folder. Ea
 |----------|---------------------|-----------------------|-------|------------|---------|
 | 🦀 Rust | 12.5% | 1.1% | 1 | `.rs` | [Open](./starters/rust/README.md) |
 | 🐹 Go | 12.5% | 1.0% | 2 | `.go` | [Open](./starters/go/README.md) |
-| 🐍 Python | 12.5% | 2.4% | 4 | `.py` | [Open](./starters/python/README.md) |
-| 🔷 TypeScript | 12.5% | 54.7% | 24 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
-| ⚡ JavaScript | 12.5% | 14.1% | 6 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
+| 🐍 Python | 12.5% | 2.3% | 4 | `.py` | [Open](./starters/python/README.md) |
+| 🔷 TypeScript | 12.5% | 55.6% | 24 | `.ts, .tsx` | [Open](./starters/typescript/README.md) |
+| ⚡ JavaScript | 12.5% | 13.8% | 6 | `.js, .mjs, .cjs` | [Open](./starters/javascript/README.md) |
 | 🗃️ SQL | 12.5% | 0.8% | 5 | `.sql` | [Open](./starters/sql/README.md) |
-| 🎨 CSS | 12.5% | 25.1% | 4 | `.css` | [Open](./starters/css/README.md) |
+| 🎨 CSS | 12.5% | 24.6% | 4 | `.css` | [Open](./starters/css/README.md) |
 | 🌐 HTML | 12.5% | 0.8% | 2 | `.html, .htm` | [Open](./starters/html/README.md) |
 <!-- language-metrics:end -->
 

@@ -133,7 +133,7 @@
 .storage-note { margin: 0.65rem 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.45; }
 
 .eco-header { backdrop-filter: blur(8px); }
-.brand { padding: 0.2rem 0.35rem; border: 1px solid var(--accent-border); border-radius: 0.65rem; }
+.brand { width: 133px; height: 30px; padding: 0 0.35rem; border: 1px solid var(--accent-border); border-radius: 0.65rem; }
 .brand-label { padding: 0.2rem 0.4rem; border-radius: 0.35rem; background: var(--accent-soft); letter-spacing: 0.02em; }
 .brand, .brand-mark, .hero-content, .section-heading, .feature-card, .feature-icon, .secondary-button, .listen-card, #ecosystem-source > div, #contact-section, .timeline-video-card, .timeline-video-card video, .timeline-figure, .language-card, .language-icon, .footer-github-link, .record-icon, .music-tabs, .player-message, .track-art, .sync-code-input, .pairing-code-display, .url-form input, .url-entry .icon-button, .portfolio-video-card, .portfolio-video-controls button {
   border-color: var(--accent-border);
