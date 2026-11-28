@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { RefreshCw } from 'lucide-react';
 
 interface ContributionDay {
   date: string;
@@ -93,7 +94,8 @@ export default function ContributionWeekEmbed({
   const [ecoData, setEcoData] = useState<EcosystemContributionData | null>(null);
   const [ecoLoadError, setEcoLoadError] = useState<string | null>(null);
   const [ecoLoading, setEcoLoading] = useState(true);
-  const [source, setSource] = useState<ContributionSource>('github');
+  const [source, setSource] = useState<ContributionSource>('eco');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [headerElement, setHeaderElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -139,7 +141,7 @@ export default function ContributionWeekEmbed({
     return () => {
       controller.abort();
     };
-  }, [site, repository, branch]);
+  }, [site, repository, branch, refreshKey]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -175,17 +177,18 @@ export default function ContributionWeekEmbed({
     return () => {
       controller.abort();
     };
-  }, [site]);
+  }, [site, refreshKey]);
 
-  const status =
-    source === 'github'
-      ? data
-        ? ''
-        : (loadError ?? 'Loading GitHub contributions…')
-      : ecoData
-        ? ''
-        : (ecoLoadError ?? (ecoLoading ? 'Loading ECO contributions…' : 'ECO data unavailable.'));
   const sourceLabel = source === 'eco' ? 'ECO' : 'GitHub';
+  const hasSyncError =
+    source === 'github'
+      ? Boolean(loadError)
+      : Boolean(ecoLoadError || (!ecoLoading && !ecoData));
+  const syncLabel = hasSyncError
+    ? `${sourceLabel} sync failed`
+    : source === 'github'
+      ? data ? 'GitHub synced' : 'Syncing GitHub'
+      : ecoData ? 'ECO synced' : 'Syncing ECO';
 
   return headerElement
     ? createPortal(
@@ -281,11 +284,17 @@ export default function ContributionWeekEmbed({
           .eco-contribution-day-count { font-size: 9px; font-weight: 700; }
           .eco-contribution-status {
             flex: 0 0 auto;
-            max-width: 100px;
-            overflow: hidden;
-            font-size: 9px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: ${hasSyncError ? '#ff4d5e' : 'inherit'};
+            cursor: pointer;
+          }
+          .eco-contribution-status:focus-visible {
+            outline: 2px solid var(--text);
+            outline-offset: 2px;
           }
         }
       `}</style>
@@ -354,14 +363,14 @@ export default function ContributionWeekEmbed({
                   );
                 })}
               </div>
-              <span
-                className="eco-contribution-status"
-                role="status"
-                aria-live="polite"
-                title={status}
+              <button
+                type="button"
+                className={`eco-contribution-status${hasSyncError ? ' has-sync-error' : ''}`}
+                aria-label={`${syncLabel}. Click to refresh`}
+                onClick={() => setRefreshKey((current) => current + 1)}
               >
-                {status}
-              </span>
+                <RefreshCw size={13} aria-hidden="true" />
+              </button>
             </div>
           </div>
         </>,

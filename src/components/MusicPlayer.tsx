@@ -136,6 +136,8 @@ export default function MusicPlayer() {
   const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeLibraryTab, setActiveLibraryTab] = useState<'playlist' | 'add' | 'share'>('playlist');
+  const [showMusicTutorial, setShowMusicTutorial] = useState(false);
+  const musicTutorialSeen = useRef(false);
   const [syncPairing, setSyncPairing] = useState<MusicSyncPairing | null>(readMusicSyncCode);
   const [pendingPairing, setPendingPairing] = useState<MusicSyncPairing | null>(null);
   const [syncCodeInput, setSyncCodeInput] = useState('');
@@ -147,6 +149,26 @@ export default function MusicPlayer() {
   const [progress, setProgress] = useState(0);
   const [syncClientId] = useState(createMusicSyncClientId);
   const syncConnection = useRef<MusicSyncConnection | null>(null);
+
+  useEffect(() => {
+    const openMusicLibrary = () => {
+      setIsOpen(true);
+      if (musicTutorialSeen.current) return;
+      try {
+        if (window.localStorage.getItem('eco-starter:music-tutorial-v1')) {
+          musicTutorialSeen.current = true;
+          return;
+        }
+        window.localStorage.setItem('eco-starter:music-tutorial-v1', 'seen');
+      } catch {
+        // Keep the tutorial available for this visit when browser storage is disabled.
+      }
+      musicTutorialSeen.current = true;
+      setShowMusicTutorial(true);
+    };
+    window.addEventListener('eco:open-music-library', openMusicLibrary);
+    return () => window.removeEventListener('eco:open-music-library', openMusicLibrary);
+  }, []);
 
   const tracks = useMemo<PlayerTrack[]>(() => [
     ...PUBLIC_PLAYLIST.map((track) => ({ ...track, src: track.audioUrl, kind: 'public' as const })),
@@ -821,6 +843,24 @@ export default function MusicPlayer() {
       />
       {isOpen && (
         <section className="playlist-popover" aria-label="Music library">
+          {showMusicTutorial && (
+            <div className="music-tutorial" role="dialog" aria-labelledby="music-tutorial-title">
+              <style>{`.music-tutorial { display: grid; gap: 0.65rem; margin-bottom: 0.8rem; padding: 0.9rem; border: 1px solid var(--accent-border); border-radius: 0.7rem; background: var(--bg-raised, rgba(11, 13, 19, 0.98)); } .music-tutorial h3, .music-tutorial p { margin: 0; } .music-tutorial-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; } .music-tutorial-skip { justify-self: start; padding: 0.25rem 0; border: 0; background: transparent; color: var(--muted); font: inherit; text-decoration: underline; cursor: pointer; }`}</style>
+              <h3 id="music-tutorial-title">Listen together</h3>
+              <p>Create a room or enter a friend's pairing code in Share/connect first, then add music you have permission to share.</p>
+              <div className="music-tutorial-actions">
+                <button type="button" className="secondary-button" onClick={() => {
+                  setActiveLibraryTab('add');
+                  setShowMusicTutorial(false);
+                }}>Add music to share</button>
+                <button type="button" className="secondary-button" onClick={() => {
+                  setActiveLibraryTab('share');
+                  setShowMusicTutorial(false);
+                }}>Enter a friend's pairing code</button>
+              </div>
+              <button type="button" className="music-tutorial-skip" onClick={() => setShowMusicTutorial(false)}>Skip tutorial</button>
+            </div>
+          )}
           <div className="playlist-heading">
             <div>
               <h2>Music library</h2>

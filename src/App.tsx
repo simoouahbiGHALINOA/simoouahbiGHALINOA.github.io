@@ -59,13 +59,11 @@ function EcoHeader({
           <a href="/">Home</a>
           <a href="/about.html">About</a>
           <a href="/timeline.html">Timeline</a>
-          <a href="/#languages">Languages</a>
-          <a href="/#listen">Listen</a>
         </nav>
       </div>
       <div className="header-side header-side-right">
-        <a className="header-link github-link" href={REPOSITORIES_URL} target="_blank" rel="noreferrer" aria-label="View all repositories on GitHub"><Github size={16} /><span>Repositories</span></a>
-        <a className="icon-button toggle-button" href={SOURCE_URL} target="_blank" rel="noreferrer" aria-label="Open the original ECO ecosystem repository" title="Original ECO ecosystem"><ArrowUpRight size={18} /></a>
+        <a className="header-link github-link" href={REPOSITORIES_URL} target="_blank" rel="noreferrer" aria-label="View all repositories on GitHub"><Github size={16} /><span>Git repo</span></a>
+        <a className="header-link github-link" href="https://github.com/simoouahbiGHALINOA/HYPERSCALE-ecosystem" target="_blank" rel="noreferrer" aria-label="Open the ECO ecosystem repository" title="ECO repository"><span className="brand-mark" aria-hidden="true">ECO</span><span>ECO repo</span></a>
         <a className="icon-button toggle-button" href={PROTECTED_USERS_URL} aria-label="Sign in with GitHub" title="Sign in with GitHub"><UserPlus size={19} /></a>
         <button className="icon-button toggle-button right-toggle" type="button" onClick={onToggleRight} aria-label="Toggle right sidebar" aria-expanded={rightOpen} title="Toggle right sidebar (Ctrl+M)">
           {rightOpen ? <PanelRightClose size={19} /> : <PanelRightOpen size={19} />}
@@ -157,7 +155,10 @@ function HomePage() {
           <div className="hero-actions">
             <a className="primary-button" href="/about.html">Get to know me <ArrowUpRight size={16} /></a>
             <GitHubFollowButton />
-            <a className="secondary-button" href="#listen"><AudioLines size={16} /> Listen with me</a>
+            <a className="secondary-button" href="#listen" onClick={(event) => {
+              event.preventDefault();
+              window.dispatchEvent(new Event('eco:open-music-library'));
+            }}><AudioLines size={16} /> Listen with me</a>
           </div>
           <p className="hero-caption">One ecosystem · built in public · powered by curiosity</p>
         </div>
