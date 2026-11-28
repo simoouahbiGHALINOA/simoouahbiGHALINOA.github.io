@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import MusicPlayer from './components/MusicPlayer';
+import ContributionWeekEmbed from './components/ContributionWeekEmbed';
 import PwaInstallButton from './components/PwaInstallButton';
 import LanguageShowcase from './components/LanguageShowcase';
 import GitHubFollowButton from './components/GitHubFollowButton';
@@ -161,6 +162,7 @@ function HomePage() {
           <p className="hero-caption">One ecosystem · built in public · powered by curiosity</p>
         </div>
       </section>
+      <ContributionWeekEmbed site="simoouahbighalinoa" />
 
       <section className="content-section intro-section" id="ecosystem">
         <div className="section-heading"><span className="eyebrow">THE PROJECT</span><h2>One ecosystem, many ideas.</h2><p>ECOS-SYS brings together connected applications, developer tools, and AI experiments. This Pages site is its lightweight public front door.</p></div>
