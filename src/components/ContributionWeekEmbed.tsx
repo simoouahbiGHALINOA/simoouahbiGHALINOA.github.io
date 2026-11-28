@@ -96,7 +96,7 @@ export default function ContributionWeekEmbed({
     return () => {
       controller.abort();
     };
-  }, [site]);
+  }, [site, repository, branch]);
 
   const status = data ? '' : (loadError ?? 'Loading GitHub contributions…');
 
