@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Disc3, ListMusic, Music2, Pause, Play, Plus, Share2, Shuffle, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
+import { Disc3, Music2, Pause, Play, Plus, Share2, Shuffle, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
 import { PUBLIC_PLAYLIST } from '../music/playlist';
 import { addDeviceTracks, chooseAudioFiles, readDeviceTracks, removeDeviceTrack, type StoredDeviceTrack } from '../music/library';
 import {
@@ -958,7 +958,6 @@ export default function MusicPlayer() {
       <div className="player-progress" aria-label="Track progress">
         <span style={{ width: `${progress * 100}%` }} />
       </div>
-      <button type="button" className="player-icon library-toggle" aria-label="Manage playlist" title="Manage playlist" onClick={() => setIsOpen((open) => !open)}><ListMusic size={18} /></button>
       <span className="visually-hidden" role="status">{message || (needsResume ? 'Playback position restored. Click or tap anywhere to resume.' : '')}</span>
     </div>
   );
