@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Disc3, ListMusic, Music2, Pause, Play, Plus, Share2, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
+import { Disc3, ListMusic, Music2, Pause, Play, Plus, Share2, Shuffle, SkipBack, SkipForward, Trash2, Upload, Volume2, X } from 'lucide-react';
 import { PUBLIC_PLAYLIST } from '../music/playlist';
 import { addDeviceTracks, chooseAudioFiles, readDeviceTracks, removeDeviceTrack, type StoredDeviceTrack } from '../music/library';
 import {
@@ -132,6 +132,7 @@ export default function MusicPlayer() {
   const [isReady, setIsReady] = useState(false);
   const [needsResume, setNeedsResume] = useState(false);
   const [volumePercent, setVolumePercent] = useState(100);
+  const [isShuffleEnabled, setIsShuffleEnabled] = useState(false);
   const [useNativePlayback, setUseNativePlayback] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeLibraryTab, setActiveLibraryTab] = useState<'playlist' | 'add' | 'share'>('playlist');
@@ -406,6 +407,16 @@ export default function MusicPlayer() {
       setMessage(error instanceof Error ? error.message : 'The selected track could not be saved.');
     }
   }, [tracks]);
+
+  const selectNextTrack = useCallback((continuePlaying = false) => {
+    if (!tracks.length) return;
+    let nextIndex = (activeIndex + 1) % tracks.length;
+    if (isShuffleEnabled && tracks.length > 1) {
+      const randomIndex = Math.floor(Math.random() * (tracks.length - 1));
+      nextIndex = randomIndex >= activeIndex ? randomIndex + 1 : randomIndex;
+    }
+    selectTrack(nextIndex, continuePlaying);
+  }, [activeIndex, isShuffleEnabled, selectTrack, tracks.length]);
 
   const play = useCallback(async (enhance = false) => {
     const element = audio.current;
@@ -802,7 +813,7 @@ export default function MusicPlayer() {
         onPause={() => setIsPlaying(false)}
         onEnded={() => {
           setIsPlaying(false);
-          if (tracks.length > 1) selectTrack((activeIndex + 1) % tracks.length, true);
+          if (tracks.length > 1) selectNextTrack(true);
         }}
         onError={() => {
           if (activeTrack) setMessage(`Could not load “${activeTrack.title}”. Check the audio URL or file.`);
@@ -920,7 +931,8 @@ export default function MusicPlayer() {
             void play(true);
           }
         }}>{isPlaying ? <Pause size={15} fill="currentColor" /> : <Play size={15} fill="currentColor" />}</button>
-        <button type="button" className="player-icon" aria-label="Next track" title="Next track" disabled={tracks.length < 2} onClick={() => selectTrack((activeIndex + 1) % tracks.length, Boolean(audio.current && !audio.current.paused))}><SkipForward size={16} /></button>
+        <button type="button" className="player-icon" aria-label="Next track" title="Next track" disabled={tracks.length < 2} onClick={() => selectNextTrack(Boolean(audio.current && !audio.current.paused))}><SkipForward size={16} /></button>
+        <button type="button" className="player-icon shuffle-toggle" aria-label="Shuffle tracks" title="Shuffle tracks" aria-pressed={isShuffleEnabled} disabled={tracks.length < 2} onClick={() => setIsShuffleEnabled((enabled) => !enabled)}><Shuffle size={16} /></button>
       </div>
       <label className="volume-control">
         <Volume2 size={16} aria-hidden="true" />
